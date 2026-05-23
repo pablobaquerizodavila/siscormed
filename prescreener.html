@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siscormed – Verifica tu elegibilidad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;
+  --dark:#04342C;--white:#fff;--border:#d0e8e0;--text:#1a2e28;--muted:#5a7a72;
+  --red:#c0392b;--orange:#E65100;
+}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:#f8faf9;min-height:100vh}
+h1,h2,h3,h4{font-family:'DM Serif Display',serif}
+
+/* TOPBAR */
+.topbar{background:var(--dark);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.topbar-logo-icon{width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.topbar-logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:#fff}
+.back-link{font-size:13px;color:rgba(255,255,255,0.6);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s}
+.back-link:hover{color:#fff}
+
+/* STEPS */
+.steps-bar{background:var(--teal-light);padding:16px 32px}
+.steps-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:0}
+.prog-step{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--muted)}
+.prog-step.active{color:var(--teal)}
+.prog-step.done{color:var(--teal-mid)}
+.prog-num{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.prog-step.active .prog-num{background:var(--teal);color:#fff}
+.prog-step.done .prog-num{background:var(--teal-mid);color:#fff}
+.prog-line{width:36px;height:2px;background:var(--border);margin:0 6px}
+.prog-line.done{background:var(--teal-mid)}
+
+/* MAIN */
+.main{max-width:760px;margin:0 auto;padding:40px 32px}
+.page-label{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--teal-mid);text-transform:uppercase;margin-bottom:8px}
+.page-title{font-size:30px;color:var(--dark);margin-bottom:8px;line-height:1.2}
+.page-sub{color:var(--muted);font-size:15px;margin-bottom:36px;line-height:1.6}
+
+/* FORM CARD */
+.form-card{background:#fff;border:0.5px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 2px 12px rgba(15,110,86,0.05)}
+.form-card h3{font-size:17px;color:var(--dark);padding-bottom:10px;border-bottom:0.5px solid var(--border);margin-bottom:16px}
+.card-sub{font-size:13px;color:var(--muted);margin-top:-8px;margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:13px;font-weight:500;color:var(--muted)}
+.form-group input,.form-group select{font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;border:0.5px solid var(--border);border-radius:8px;background:#fafffe;color:var(--text);outline:none;transition:border-color 0.2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--teal-mid)}
+
+/* CHECKBOXES */
+.check-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.check-opt{display:flex;align-items:flex-start;gap:10px;font-size:14px;cursor:pointer;padding:10px 12px;border:0.5px solid var(--border);border-radius:10px;transition:background 0.15s;line-height:1.5}
+.check-opt:hover{background:var(--teal-light)}
+.check-opt input{accent-color:var(--teal);margin-top:3px;flex-shrink:0}
+.check-opt.ninguna-opt{border-color:var(--teal-mid);font-weight:500}
+
+/* SÍ/NO */
+.yesno-block{margin-bottom:20px}
+.yesno-block:last-child{margin-bottom:0}
+.yesno-question{font-size:14px;font-weight:500;color:var(--dark);margin-bottom:8px}
+.yesno-group{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.yesno-btn{border:0.5px solid var(--border);border-radius:10px;padding:14px 12px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500}
+.yesno-btn:hover{border-color:var(--teal-mid);background:var(--teal-light)}
+.yesno-btn.selected-no{border-color:#2E7D32;background:#f0faf0;color:#2E7D32}
+.yesno-btn.selected-yes{border-color:#c0392b;background:#fff5f5;color:#c0392b}
+
+/* OPTION CARDS */
+.option-cards{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.option-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;background:#fff}
+.option-card:hover{border-color:var(--teal-mid);background:var(--teal-light)}
+.option-card.selected{border-color:var(--teal);background:var(--teal-light)}
+.option-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.option-title{font-size:14px;font-weight:500}
+.option-sub{font-size:12px;margin-top:1px}
+
+/* CTA BTN */
+.cta-btn{width:100%;background:var(--teal);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:15px;border-radius:12px;border:none;cursor:pointer;transition:background 0.2s,transform 0.2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.cta-btn:hover{background:var(--dark);transform:translateY(-1px)}
+
+/* ===== RESULTADO ===== */
+#resultado{display:none;margin-top:8px}
+
+/* NO ELEGIBLE */
+.no-eligible{background:#fff;border:0.5px solid var(--border);border-radius:20px;padding:40px 32px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+.no-eligible-icon{font-size:56px;margin-bottom:16px}
+.no-eligible h2{font-size:24px;color:var(--dark);margin-bottom:12px}
+.no-eligible p{color:var(--muted);font-size:15px;line-height:1.7;max-width:420px;margin:0 auto}
+
+/* RESULTADO CARD */
+.result-card{background:#fff;border:0.5px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(15,110,86,0.08)}
+.result-header{padding:32px;text-align:center;position:relative}
+.result-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.result-title{font-size:26px;color:var(--dark);margin-bottom:6px}
+.result-sub{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* COMPATIBILITY RING */
+.compat-ring-wrap{margin:28px auto 20px;width:160px;height:160px;position:relative}
+.compat-ring-wrap svg{width:160px;height:160px;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#f0f5f3;stroke-width:12}
+.ring-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s}
+.compat-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.compat-num{font-size:38px;font-family:'DM Serif Display',serif;line-height:1}
+.compat-sign{font-size:16px;font-family:'DM Serif Display',serif}
+.compat-txt{font-size:11px;color:var(--muted);margin-top:4px;font-weight:500;letter-spacing:0.5px}
+
+/* METRICS GRID */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)}
+.metric-item{background:#fff;padding:20px 16px;text-align:center}
+.metric-val{font-size:22px;font-family:'DM Serif Display',serif;color:var(--dark)}
+.metric-label{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+/* WEIGHT LOSS SECTION */
+.weight-section{padding:28px 32px;border-top:0.5px solid var(--border)}
+.weight-title{font-size:15px;font-weight:500;color:var(--dark);margin-bottom:16px}
+.weight-bar-wrap{margin-bottom:12px}
+.weight-bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.weight-bar-label span:first-child{color:var(--muted)}
+.weight-bar-label span:last-child{font-weight:500;color:var(--dark)}
+.weight-bar{height:10px;background:#f0f5f3;border-radius:5px;overflow:hidden}
+.weight-fill{height:100%;border-radius:5px;transition:width 1s cubic-bezier(0.4,0,0.2,1)}
+
+/* FACTORS */
+.factors-section{padding:0 32px 28px}
+.factors-title{font-size:13px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.factor-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f5f3;font-size:13px}
+.factor-row:last-child{border-bottom:none}
+.factor-icon{font-size:15px;width:24px;text-align:center}
+.factor-text{flex:1;color:var(--text)}
+.factor-badge{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:500}
+.badge-ok{background:#E1F5EE;color:var(--teal)}
+.badge-warn{background:#FFF3E0;color:var(--orange)}
+.badge-bad{background:#fdecea;color:var(--red)}
+
+/* ACTION BUTTONS */
+.result-actions{padding:24px 32px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.btn-primary{background:var(--teal);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:15px;border-radius:12px;border:none;cursor:pointer;text-align:center;text-decoration:none;display:block;transition:background 0.2s,transform 0.2s}
+.btn-primary:hover{background:var(--dark);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px;border-radius:12px;border:0.5px solid var(--border);cursor:pointer;text-align:center;text-decoration:none;display:block;transition:all 0.2s}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+
+@media(max-width:540px){
+  .form-grid{grid-template-columns:1fr}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+  .main{padding:24px 16px}
+  .result-header,.weight-section,.factors-section,.result-actions{padding-left:20px;padding-right:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-logo">
+    <div class="topbar-logo-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+    </div>
+    <span class="topbar-logo-text">Siscormed</span>
+  </a>
+  <a href="index.html" class="back-link">← Volver al inicio</a>
+</div>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="steps-inner">
+    <div class="prog-step active"><div class="prog-num">1</div><span>Elegibilidad</span></div>
+    <div class="prog-line"></div>
+    <div class="prog-step"><div class="prog-num">2</div><span>Historial médico</span></div>
+    <div class="prog-line"></div>
+    <div class="prog-step"><div class="prog-num">3</div><span>Laboratorio</span></div>
+    <div class="prog-line"></div>
+    <div class="prog-step"><div class="prog-num">4</div><span>Médico</span></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-label">Paso 1 de 4</div>
+  <h2 class="page-title">Verifica tu elegibilidad</h2>
+  <p class="page-sub">Responde estas preguntas rápidas para saber si eres candidato ideal para nuestro programa GLP-1. Solo toma 2 minutos.</p>
+
+  <!-- DATOS FÍSICOS -->
+  <div class="form-card">
+    <h3>Datos físicos</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Peso actual (lbs) *</label>
+        <input type="number" id="peso" placeholder="Ej. 185" oninput="onInputChange()">
+      </div>
+      <div class="form-group">
+        <label>Estatura (cm) *</label>
+        <input type="number" id="estatura" placeholder="Ej. 165" oninput="onInputChange()">
+      </div>
+      <div class="form-group">
+        <label>Edad *</label>
+        <input type="number" id="edad" placeholder="Ej. 35" oninput="onInputChange()">
+      </div>
+      <div class="form-group">
+        <label>Sexo biológico *</label>
+        <select id="sexo" onchange="onInputChange()">
+          <option value="">Seleccionar...</option>
+          <option>Femenino</option>
+          <option>Masculino</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONDICIONES GRUPO 1 -->
+  <div class="form-card">
+    <h3>Condiciones de salud — Grupo 1</h3>
+    <p class="card-sub">¿Alguna de estas condiciones aplica para ti?</p>
+    <div class="check-list" id="g1">
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Enfermedad renal en etapa terminal (en diálisis o a punto de estarlo)</label>
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Enfermedad hepática en etapa terminal (cirrosis)</label>
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Pensamientos suicidas actuales y/o intento de suicidio previo</label>
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Cáncer (diagnóstico activo, en tratamiento o en remisión por menos de 5 años)</label>
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Condición gastrointestinal grave (gastroparesia, obstrucción, enfermedad inflamatoria intestinal)</label>
+      <label class="check-opt"><input type="checkbox" value="bad" onchange="onInputChange()"> Diagnóstico o tratamiento por trastorno de alcohol, opioides o dependencia a sustancias</label>
+      <label class="check-opt ninguna-opt"><input type="checkbox" value="ninguna" data-ninguna="g1" onchange="onNinguna(this)"> Ninguna de las anteriores</label>
+    </div>
+  </div>
+
+  <!-- CONDICIONES GRUPO 2 -->
+  <div class="form-card">
+    <h3>Condiciones de salud — Grupo 2</h3>
+    <p class="card-sub">¿Alguna de estas condiciones aplica para ti?</p>
+    <div class="check-list" id="g2">
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Hipotiroidismo no tratado</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Enfermedad de la vesícula biliar</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Hipertensión (presión arterial alta)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Convulsiones / epilepsia</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Glaucoma</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Apnea del sueño</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Diabetes tipo 2 (sin insulina)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Diabetes tipo 2 (con insulina)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Diabetes tipo 1</label>
+      <label class="check-opt ninguna-opt"><input type="checkbox" value="ninguna" data-ninguna="g2" onchange="onNinguna(this)"> Ninguna de las anteriores</label>
+    </div>
+  </div>
+
+  <!-- CONDICIONES GRUPO 3 -->
+  <div class="form-card">
+    <h3>Condiciones de salud — Grupo 3</h3>
+    <p class="card-sub">¿Alguna de estas condiciones aplica para ti?</p>
+    <div class="check-list" id="g3">
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Retinopatía diabética o daño al nervio óptico</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Uso del anticoagulante warfarina</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Historial o pancreatitis actual</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Historial familiar de cáncer tiroideo o MEN2</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Gota</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Colesterol alto o triglicéridos elevados</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Depresión</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Lesión craneal</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Tumor o infección en cerebro / médula espinal</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Sodio bajo (hiponatremia)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Enfermedad hepática incluyendo hígado graso</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Enfermedad renal</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Frecuencia cardíaca elevada en reposo (taquicardia)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Enfermedad coronaria o infarto/ACV en los últimos 2 años</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Alergia a algún medicamento</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Insuficiencia cardíaca congestiva</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Prolongación QT u otro trastorno del ritmo cardíaco</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Hospitalización en el último año</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> VIH</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Reflujo ácido</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Asma / enfermedad reactiva de las vías respiratorias</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Incontinencia urinaria de esfuerzo</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Síndrome de ovario poliquístico (SOP)</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Testosterona baja clínicamente comprobada</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Osteoartritis</label>
+      <label class="check-opt"><input type="checkbox" value="warn" onchange="onInputChange()"> Estreñimiento</label>
+      <label class="check-opt ninguna-opt"><input type="checkbox" value="ninguna" data-ninguna="g3" onchange="onNinguna(this)"> Ninguna de las anteriores</label>
+    </div>
+  </div>
+
+  <!-- PREGUNTAS ADICIONALES -->
+  <div class="form-card">
+    <h3>Preguntas adicionales</h3>
+    <div style="margin-top:4px">
+      <div class="yesno-block">
+        <p class="yesno-question">¿Ha tomado medicamentos opiáceos en los últimos 3 meses?</p>
+        <div class="yesno-group" id="op-group">
+          <div class="yesno-btn" onclick="setYN('op','no',this)">✓ No</div>
+          <div class="yesno-btn" onclick="setYN('op','si',this)">✗ Sí</div>
+        </div>
+      </div>
+      <div class="yesno-block">
+        <p class="yesno-question">¿Ha tenido cirugías previas de pérdida de peso?</p>
+        <div class="yesno-group" id="cir-group">
+          <div class="yesno-btn" onclick="setYN('cir','no',this)">✓ No</div>
+          <div class="yesno-btn" onclick="setYN('cir','si',this)">✗ Sí</div>
+        </div>
+      </div>
+      <div class="yesno-block" style="margin-bottom:0">
+        <p class="yesno-question">¿Toma actualmente medicamentos recetados?</p>
+        <div class="yesno-group" id="rec-group">
+          <div class="yesno-btn" onclick="setYN('rec','no',this)">✓ No</div>
+          <div class="yesno-btn" onclick="setYN('rec','si',this)">✗ Sí</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESIÓN ARTERIAL -->
+  <div class="form-card">
+    <h3>¿Cuál es tu rango de presión arterial?</h3>
+    <div class="option-cards" id="presion-cards">
+      <div class="option-card" onclick="setOption('presion','normal',this)">
+        <div class="option-icon" style="background:#e8f5e9">💧</div>
+        <div><div class="option-title">&lt; 120/80</div><div class="option-sub" style="color:#2E7D32">Normal</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('presion','elevada',this)">
+        <div class="option-icon" style="background:#fff8e1">💧</div>
+        <div><div class="option-title">120 – 129 / &lt;80</div><div class="option-sub" style="color:#F9A825">Elevada</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('presion','hta1',this)">
+        <div class="option-icon" style="background:#fff3e0">💧</div>
+        <div><div class="option-title">130 – 139 / 80-89</div><div class="option-sub" style="color:#E65100">Hipertensión Etapa 1</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('presion','hta2',this)">
+        <div class="option-icon" style="background:#fdecea">💧</div>
+        <div><div class="option-title">≥ 140/90</div><div class="option-sub" style="color:#B71C1C">Hipertensión Etapa 2</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRECUENCIA CARDÍACA -->
+  <div class="form-card">
+    <h3>¿Cuál es tu frecuencia cardíaca promedio en reposo?</h3>
+    <div class="option-cards" id="fc-cards">
+      <div class="option-card" onclick="setOption('fc','lenta',this)">
+        <div class="option-icon" style="background:#e0f7fa">♥</div>
+        <div><div class="option-title">&lt;60 latidos por minuto</div><div class="option-sub" style="color:#00838F">Lenta</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('fc','normal',this)">
+        <div class="option-icon" style="background:#e8f5e9">♥</div>
+        <div><div class="option-title">60 – 100 latidos por minuto</div><div class="option-sub" style="color:#2E7D32">Normal</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('fc','rapida',this)">
+        <div class="option-icon" style="background:#fff3e0">♥</div>
+        <div><div class="option-title">101 – 110 latidos por minuto</div><div class="option-sub" style="color:#E65100">Ligeramente rápida</div></div>
+      </div>
+      <div class="option-card" onclick="setOption('fc','muyrápida',this)">
+        <div class="option-icon" style="background:#fdecea">♥</div>
+        <div><div class="option-title">&gt;110 latidos por minuto</div><div class="option-sub" style="color:#B71C1C">Rápida</div></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="cta-btn" onclick="calcular()">
+    Ver mi resultado →
+  </button>
+
+  <!-- RESULTADO -->
+  <div id="resultado" style="margin-top:28px"></div>
+</div>
+
+<script>
+const sel={op:null,cir:null,rec:null,presion:null,fc:null};
+
+function onNinguna(cb){
+  const grp=cb.closest('.check-list');
+  if(cb.checked){
+    grp.querySelectorAll('input:not([data-ninguna])').forEach(c=>c.checked=false);
+  }
+  onInputChange();
+}
+document.querySelectorAll('.check-list input:not([data-ninguna])').forEach(cb=>{
+  cb.addEventListener('change',function(){
+    if(this.checked){
+      const n=this.closest('.check-list').querySelector('[data-ninguna]');
+      if(n)n.checked=false;
+    }
+  });
+});
+
+function setYN(field,val,el){
+  document.getElementById(field+'-group').querySelectorAll('.yesno-btn').forEach(b=>b.classList.remove('selected-no','selected-yes'));
+  el.classList.add(val==='no'?'selected-no':'selected-yes');
+  sel[field]=val;
+  onInputChange();
+}
+
+function setOption(field,val,el){
+  document.getElementById(field+'-cards').querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  sel[field]=val;
+  onInputChange();
+}
+
+function onInputChange(){
+  // auto-hide resultado si cambian inputs
+  document.getElementById('resultado').style.display='none';
+}
+
+function getBMI(){
+  const lbs=parseFloat(document.getElementById('peso').value);
+  const cm=parseFloat(document.getElementById('estatura').value);
+  if(!lbs||!cm||cm<=0)return null;
+  return(lbs*0.453592)/((cm/100)**2);
+}
+
+// ═══════════════════════════════════════════════════════
+// BASE DE CONOCIMIENTO MÉDICO — GLP-1 (Semaglutida / Tirzepatida)
+// Basado en evidencia clínica de FDA, EMA y estudios SUSTAIN/SURMOUNT
+// ═══════════════════════════════════════════════════════
+const MEDICAL_DB = {
+  // ── CONTRAINDICACIONES ABSOLUTAS (Grupo 1) ──────────
+  // Estas condiciones representan riesgo grave o contraindicación formal
+  contraindicaciones: [
+    {
+      clave: 'Enfermedad renal en etapa terminal (diálisis)',
+      impacto: -60,
+      nivel: 'critico',
+      titulo: 'Enfermedad renal terminal',
+      riesgo: 'Contraindicación relativa severa. Los GLP-1 se eliminan principalmente por vía renal. En pacientes en diálisis existe riesgo de acumulación del fármaco, hipoglucemia severa y deterioro adicional de la función renal residual. La FDA no recomienda su uso sin supervisión nefrológica especializada.',
+      recomendacion: 'Requiere evaluación nefrológica obligatoria antes de cualquier prescripción.'
+    },
+    {
+      clave: 'Enfermedad hepática en etapa terminal (cirrosis)',
+      impacto: -55,
+      nivel: 'critico',
+      titulo: 'Cirrosis hepática avanzada',
+      riesgo: 'El metabolismo hepático alterado modifica significativamente la farmacocinética del GLP-1. Existe riesgo aumentado de hipoglucemia, encefalopatía hepática precipitada por cambios metabólicos y deterioro de la función hepática residual.',
+      recomendacion: 'Contraindicado en Child-Pugh C. Requiere hepatología antes de proceder.'
+    },
+    {
+      clave: 'Pensamientos suicidas actuales o intento previo',
+      impacto: -70,
+      nivel: 'critico',
+      titulo: 'Riesgo de salud mental',
+      riesgo: 'La FDA emitió advertencias de seguridad sobre posibles cambios en el estado de ánimo con GLP-1. En pacientes con ideación suicida activa o historia reciente, el riesgo de exacerbación es significativo. La restricción calórica asociada al tratamiento puede agravar estados depresivos.',
+      recomendacion: 'Contraindicado hasta estabilización psiquiátrica documentada. Requiere psiquiatría.'
+    },
+    {
+      clave: 'Cáncer activo o en remisión menos de 5 años',
+      impacto: -65,
+      nivel: 'critico',
+      titulo: 'Diagnóstico oncológico activo o reciente',
+      riesgo: 'Los GLP-1 tienen efecto sobre la proliferación celular a través del receptor GLP-1R. En pacientes con cáncer activo o reciente, existe preocupación teórica de estimulación de células tumorales con receptor GLP-1R. Los estudios LEADER y SUSTAIN excluyeron a estos pacientes.',
+      recomendacion: 'Contraindicado hasta 5 años de remisión confirmada. Requiere oncología.'
+    },
+    {
+      clave: 'Condición gastrointestinal grave',
+      impacto: -60,
+      nivel: 'critico',
+      titulo: 'Enfermedad gastrointestinal grave',
+      riesgo: 'Los GLP-1 retrasan significativamente el vaciamiento gástrico (efecto conocido). En pacientes con gastroparesia, obstrucción o EII activa, esto puede causar oclusión intestinal, agravamiento de la gastroparesia hasta requerir hospitalización, y malabsorción severa de medicamentos esenciales.',
+      recomendacion: 'Contraindicación formal en gastroparesia. Evaluación gastroenterológica obligatoria.'
+    },
+    {
+      clave: 'Trastorno por alcohol, opioides o sustancias',
+      impacto: -50,
+      nivel: 'critico',
+      titulo: 'Trastorno por uso de sustancias',
+      riesgo: 'Los GLP-1 actúan sobre el sistema de recompensa cerebral (área tegmental ventral). En pacientes con trastornos adictivos, existe riesgo de transferencia de adicción, alteración del metabolismo hepático por alcohol, e interacciones farmacocinéticas con opioides que pueden precipitar síndrome de abstinencia.',
+      recomendacion: 'Requiere estabilización en programa de adicciones y evaluación psiquiátrica.'
+    }
+  ],
+  // ── CONDICIONES QUE REQUIEREN MONITOREO (Grupos 2 y 3) ──
+  condicionesMonitoreo: [
+    // Grupo 2
+    { clave:'Hipotiroidismo no tratado', impacto:-20, nivel:'moderado', titulo:'Hipotiroidismo no tratado',
+      riesgo:'El hipotiroidismo no controlado reduce el metabolismo basal y puede contrarrestar los efectos metabólicos del GLP-1. Además, existe una advertencia de caja negra sobre cáncer medular de tiroides con GLP-1 en pacientes con enfermedad tiroidea preexistente.',
+      recomendacion:'Tratar y estabilizar el hipotiroidismo primero. Monitorear TSH mensualmente.' },
+    { clave:'Enfermedad de la vesícula biliar', impacto:-15, nivel:'moderado', titulo:'Enfermedad biliar',
+      riesgo:'Los GLP-1 aumentan el riesgo de colelitiasis y colecistitis en un 0.8% adicional según estudios SUSTAIN-6. En pacientes con enfermedad biliar preexistente, este riesgo se multiplica significativamente.',
+      recomendacion:'Evaluación de vesícula biliar previa. Vigilancia ecográfica semestral durante tratamiento.' },
+    { clave:'Hipertensión (presión arterial alta)', impacto:-5, nivel:'favorable', titulo:'Hipertensión',
+      riesgo:'En realidad los GLP-1 tienen efecto BENEFICIOSO sobre la hipertensión: estudios LEADER demostraron reducción promedio de 2-3 mmHg en PA sistólica. Sin embargo, si la HTA no está controlada (>160/100), hay riesgo de eventos cardiovasculares durante el período de ajuste de dosis.',
+      recomendacion:'Control de PA antes de iniciar. Los GLP-1 pueden mejorar tu presión arterial.' },
+    { clave:'Convulsiones / epilepsia', impacto:-25, nivel:'moderado', titulo:'Epilepsia / Convulsiones',
+      riesgo:'Los cambios glucémicos rápidos durante el inicio del tratamiento GLP-1 pueden reducir el umbral convulsivo. Adicionalmente, la hipoglucemia (especialmente combinada con antidiabéticos) es un desencadenante conocido de convulsiones.',
+      recomendacion:'Ajuste de medicación antiepiléptica necesario. Monitoreo neurológico durante titulación.' },
+    { clave:'Glaucoma', impacto:-10, nivel:'leve', titulo:'Glaucoma',
+      riesgo:'Reportes post-comercialización sugieren posibles cambios en la presión intraocular con GLP-1. El mecanismo es incierto, posiblemente relacionado con cambios en la presión hidrostática ocular por modificaciones en la composición corporal.',
+      recomendacion:'Control oftalmológico semestral. Monitorear presión intraocular.' },
+    { clave:'Apnea del sueño', impacto:10, nivel:'favorable', titulo:'Apnea del sueño',
+      riesgo:'¡Buena noticia! La pérdida de peso con GLP-1 tiene un efecto POSITIVO sobre la apnea del sueño. El estudio SURMOUNT-OSA demostró reducción del 55-62% en el índice apnea-hipopnea con tirzepatida.',
+      recomendacion:'Los GLP-1 pueden mejorar significativamente tu apnea del sueño.' },
+    { clave:'Diabetes tipo 2 (sin insulina)', impacto:15, nivel:'favorable', titulo:'Diabetes tipo 2',
+      riesgo:'¡Indicación APROBADA! Los GLP-1 están formalmente indicados para Diabetes tipo 2. Reducen HbA1c en 1.5-2%, con beneficio cardiovascular demostrado (SUSTAIN-6, LEADER). Son una de las mejores opciones farmacológicas para este perfil.',
+      recomendacion:'Excelente candidato. Monitorear glucemia y posible reducción de antidiabéticos orales.' },
+    { clave:'Diabetes tipo 2 (con insulina)', impacto:-5, nivel:'moderado', titulo:'Diabetes tipo 2 con insulina',
+      riesgo:'La combinación GLP-1 + insulina requiere ajuste cuidadoso de dosis. El riesgo principal es hipoglucemia severa si no se reduce la insulina al iniciar GLP-1. El vaciamiento gástrico retardado también altera la absorción de carbohidratos post-prandiales.',
+      recomendacion:'Requiere reducción de insulina basal 20% al iniciar. Monitoreo glucémico intensivo.' },
+    { clave:'Diabetes tipo 1', impacto:-30, nivel:'alto', titulo:'Diabetes tipo 1',
+      riesgo:'Los GLP-1 NO están aprobados para Diabetes tipo 1. En estos pacientes existe riesgo de cetoacidosis diabética euglucémica (DKA-E), condición potencialmente fatal donde la cetoacidosis ocurre con glucemia aparentemente normal, dificultando el diagnóstico.',
+      recomendacion:'Uso off-label con alto riesgo. Solo bajo supervisión endocrinológica estricta con monitoreo de cetonas.' },
+    // Grupo 3
+    { clave:'Retinopatía diabética o daño al nervio óptico', impacto:-20, nivel:'moderado', titulo:'Retinopatía diabética',
+      riesgo:'El estudio SUSTAIN-6 documentó un incremento del 76% en eventos de retinopatía durante los primeros 16 semanas de semaglutida. Este efecto paradójico se atribuye a la reducción rápida de HbA1c que causa vasoespasmo retiniano transitorio.',
+      recomendacion:'Evaluación oftalmológica obligatoria antes de iniciar. Reducción gradual de HbA1c (máx. 1% por mes).' },
+    { clave:'Uso de warfarina (Coumadin/Jantoven)', impacto:-20, nivel:'moderado', titulo:'Uso de warfarina',
+      riesgo:'Los GLP-1 alteran la absorción de warfarina al retrasar el vaciamiento gástrico. Esto puede causar fluctuaciones significativas en el INR, aumentando riesgo de sangrado o trombosis. Múltiples reportes de INR supraterapéutico al iniciar GLP-1.',
+      recomendacion:'Monitoreo de INR semanal al iniciar y durante titulación. Ajuste de dosis de warfarina probable.' },
+    { clave:'Historial de pancreatitis', impacto:-35, nivel:'alto', titulo:'Historial de pancreatitis',
+      riesgo:'Contraindicación relativa importante. Los GLP-1 se asocian con pancreatitis aguda (incidencia 0.1-0.3%). En pacientes con pancreatitis previa, el riesgo de recurrencia es 3-5 veces mayor. La pancreatitis necrotizante puede ser fatal.',
+      recomendacion:'Evaluación gastroenterológica obligatoria. Monitoreo de amilasa/lipasa mensual.' },
+    { clave:'Historial familiar de cáncer tiroideo o MEN2', impacto:-45, nivel:'alto', titulo:'Riesgo de cáncer tiroideo',
+      riesgo:'ADVERTENCIA DE CAJA NEGRA FDA. Los GLP-1 causan tumores de células C tiroideas en roedores. Aunque no se ha confirmado en humanos, la FDA contraindica su uso en pacientes con historia personal o familiar de carcinoma medular de tiroides o Síndrome MEN2.',
+      recomendacion:'Contraindicación formal. No usar GLP-1 en este perfil según FDA.' },
+    { clave:'Gota', impacto:-5, nivel:'leve', titulo:'Gota',
+      riesgo:'La pérdida de peso rápida con GLP-1 puede precipitar crisis de gota por aumento transitorio del ácido úrico sérico (efecto conocido de cualquier pérdida de peso significativa). El riesgo es mayor en las primeras 12 semanas.',
+      recomendacion:'Profilaxis con colchicina 0.6mg/día durante los primeros 3-6 meses recomendada.' },
+    { clave:'Colesterol alto o triglicéridos elevados', impacto:15, nivel:'favorable', titulo:'Dislipidemia',
+      riesgo:'¡Beneficio comprobado! Los GLP-1 reducen triglicéridos en 20-30% y mejoran el perfil lipídico general. El estudio LEADER demostró reducción significativa de eventos cardiovasculares mayores en pacientes con dislipidemia.',
+      recomendacion:'Los GLP-1 mejorarán tu perfil lipídico. Potencial reducción de estatinas a futuro.' },
+    { clave:'Depresión', impacto:-15, nivel:'moderado', titulo:'Depresión',
+      riesgo:'Relación bidireccional compleja. Los GLP-1 tienen efecto potencialmente beneficioso sobre el estado de ánimo en algunos pacientes, pero la FDA requiere monitoreo por casos reportados de pensamientos suicidas. La restricción calórica puede exacerbar estados depresivos.',
+      recomendacion:'Monitoreo psiquiátrico mensual durante los primeros 6 meses. Informar cambios de humor.' },
+    { clave:'Lesión craneal', impacto:-15, nivel:'moderado', titulo:'Traumatismo craneoencefálico',
+      riesgo:'Las lesiones cerebrales pueden alterar los mecanismos centrales de regulación del apetito donde actúan los GLP-1 (hipotálamo, área postrema). Esto puede generar respuestas atípicas al tratamiento o hipoglucemia central.',
+      recomendacion:'Evaluación neurológica previa. Titulación muy gradual con monitoreo.' },
+    { clave:'Tumor o infección en cerebro/médula espinal', impacto:-40, nivel:'alto', titulo:'Patología del SNC',
+      riesgo:'Los GLP-1 actúan directamente sobre el SNC. Tumores o infecciones activas del cerebro/médula espinal pueden alterar drásticamente la respuesta al fármaco y crear interacciones impredecibles con medicamentos oncológicos o antiinfecciosos.',
+      recomendacion:'Contraindicado hasta resolución de la patología del SNC.' },
+    { clave:'Sodio bajo (hiponatremia)', impacto:-20, nivel:'moderado', titulo:'Hiponatremia',
+      riesgo:'Los GLP-1 tienen efecto natriurético (eliminación de sodio). En pacientes ya hiponatrémicos, esto puede precipitar hiponatremia severa (<120 mEq/L), causando confusión, convulsiones o coma hiponatrémico.',
+      recomendacion:'Corrección de sodio sérico antes de iniciar. Monitoreo de electrolitos cada 2 semanas al inicio.' },
+    { clave:'Enfermedad hepática incluyendo hígado graso', impacto:20, nivel:'favorable', titulo:'Hígado graso / Esteatosis',
+      riesgo:'¡Beneficio significativo! Los GLP-1 son el único tratamiento farmacológico que ha demostrado mejoría histológica en NASH (esteatohepatitis no alcohólica). Semaglutida redujo fibrosis hepática en 59% de pacientes en ensayos clínicos.',
+      recomendacion:'Excelente indicación adicional. Los GLP-1 pueden revertir el daño hepático por hígado graso.' },
+    { clave:'Enfermedad renal', impacto:-15, nivel:'moderado', titulo:'Enfermedad renal crónica',
+      riesgo:'En ERC estadios 1-3 los GLP-1 son seguros y protectores. En estadios 4-5, la eliminación del fármaco se reduce, aumentando exposición sistémica. Semaglutida demostró reducción del 24% en progresión de nefropatía (FLOW trial 2024).',
+      recomendacion:'Ajuste de dosis según TFG. GLP-1 pueden proteger tu riñón si ERC es leve-moderada.' },
+    { clave:'Frecuencia cardíaca elevada (taquicardia)', impacto:-20, nivel:'moderado', titulo:'Taquicardia',
+      riesgo:'Los GLP-1 aumentan la frecuencia cardíaca en reposo promedio 2-4 lpm (efecto clase). En pacientes con taquicardia basal, esto puede exacerbar arritmias o precipitar fibrilación auricular. Reportes de taquicardia sinusal sintomática al inicio.',
+      recomendacion:'Holter cardíaco pre-tratamiento. Inicio con dosis mínima y titulación muy lenta.' },
+    { clave:'Enfermedad coronaria o infarto/ACV últimos 2 años', impacto:25, nivel:'favorable', titulo:'Enfermedad cardiovascular',
+      riesgo:'¡Indicación APROBADA por FDA para reducción de riesgo cardiovascular! Los estudios LEADER (liraglutida) y SUSTAIN-6 (semaglutida) demostraron reducción del 26% en eventos cardiovasculares mayores (MACE: infarto, ACV, muerte CV).',
+      recomendacion:'Excelente indicación. Semaglutida está aprobada específicamente para reducir riesgo CV.' },
+    { clave:'Alergia a medicamentos', impacto:-10, nivel:'leve', titulo:'Historia de alergias',
+      riesgo:'Riesgo de reacción alérgica cruzada. Los GLP-1 son péptidos sintéticos; aunque las reacciones anafilácticas son raras (<0.1%), en pacientes con historia alérgica múltiple el riesgo es mayor.',
+      recomendacion:'Primera dosis bajo supervisión médica con kit de adrenalina disponible.' },
+    { clave:'Insuficiencia cardíaca congestiva', impacto:-10, nivel:'leve', titulo:'Insuficiencia cardíaca',
+      riesgo:'Los resultados son mixtos. En ICC con FE reducida, el estudio FIGHT no mostró beneficio. Sin embargo, en ICC con FE preservada (común en obesidad), los GLP-1 mejoran síntomas. La pérdida de peso reduce la precarga cardíaca.',
+      recomendacion:'Evaluación cardiológica. Depende del tipo de ICC. Puede ser beneficioso según fracción de eyección.' },
+    { clave:'Prolongación QT u otro trastorno del ritmo cardíaco', impacto:-25, nivel:'alto', titulo:'Arritmia / QT prolongado',
+      riesgo:'El aumento de FC inducido por GLP-1 (2-4 lpm) puede desencadenar arritmias en pacientes con QT prolongado o trastornos del ritmo preexistentes. Riesgo de Torsades de Pointes en QT>500ms.',
+      recomendacion:'ECG obligatorio. Contraindicado si QTc>500ms. Monitoreo Holter durante titulación.' },
+    { clave:'Hospitalización en el último año', impacto:-15, nivel:'moderado', titulo:'Hospitalización reciente',
+      riesgo:'Hospitalización reciente sugiere inestabilidad médica. Iniciar GLP-1 durante período de recuperación puede interactuar con medicamentos hospitalarios (antibióticos IV, corticoides, anticoagulantes) y enmascarar síntomas de complicaciones.',
+      recomendacion:'Esperar mínimo 3 meses post-alta hospitalaria. Revisión de medicamentos actuales.' },
+    { clave:'VIH', impacto:-10, nivel:'leve', titulo:'VIH',
+      riesgo:'Los antirretrovirales (especialmente inhibidores de proteasa) interactúan con el metabolismo de GLP-1. La lipodistrofia asociada al VIH puede modificar la distribución corporal de la grasa de manera diferente a la población general.',
+      recomendacion:'Coordinación con infectólogo. Revisión de interacciones con antirretrovirales.' },
+    { clave:'Reflujo ácido', impacto:-10, nivel:'leve', titulo:'Reflujo gastroesofágico (ERGE)',
+      riesgo:'Los GLP-1 retrasan el vaciamiento gástrico, lo que puede exacerbar el reflujo. Aumento del tiempo de contacto del ácido con el esófago. Reportes de empeoramiento de ERGE en 15-20% de pacientes durante las primeras semanas.',
+      recomendacion:'Inicio con inhibidores de bomba de protones. Elevar cabecera de la cama. Monitoreo.' },
+    { clave:'Asma / enfermedad reactiva de las vías respiratorias', impacto:5, nivel:'leve', titulo:'Asma',
+      riesgo:'Efecto neutral a levemente positivo. La pérdida de peso reduce la carga mecánica sobre el diafragma y mejora la función pulmonar en pacientes obesos con asma. Sin interacciones directas conocidas con broncodilatadores.',
+      recomendacion:'Sin contraindicaciones. La pérdida de peso puede mejorar el control del asma.' },
+    { clave:'Incontinencia urinaria de esfuerzo', impacto:15, nivel:'favorable', titulo:'Incontinencia urinaria',
+      riesgo:'¡Beneficio comprobado! La pérdida de peso con GLP-1 reduce la presión intraabdominal, mejorando significativamente la incontinencia de esfuerzo. Estudios muestran mejora en >60% de pacientes tras pérdida del 10% del peso.',
+      recomendacion:'Los GLP-1 mejorarán este síntoma como beneficio adicional al tratamiento.' },
+    { clave:'Síndrome de ovario poliquístico (SOP)', impacto:20, nivel:'favorable', titulo:'SOP / PCOS',
+      riesgo:'¡Excelente indicación adicional! Los GLP-1 mejoran la resistencia a la insulina (mecanismo central del SOP), reducen andrógenos, restauran ciclos menstruales y mejoran fertilidad. Beneficio doble: pérdida de peso + control hormonal.',
+      recomendacion:'Indicación adicional positiva. Monitorear posible aumento de fertilidad.' },
+    { clave:'Testosterona baja clínicamente comprobada', impacto:10, nivel:'favorable', titulo:'Hipogonadismo masculino',
+      riesgo:'Beneficio indirecto. La obesidad suprime la testosterona; la pérdida de peso con GLP-1 aumenta la testosterona libre en hombres obesos en promedio 30-40%. Algunos pacientes pueden reducir o eliminar la necesidad de terapia de reemplazo.',
+      recomendacion:'Los GLP-1 pueden normalizar tu testosterona con la pérdida de peso.' },
+    { clave:'Osteoartritis', impacto:15, nivel:'favorable', titulo:'Osteoartritis',
+      riesgo:'¡Beneficio directo! Cada kilogramo de peso perdido reduce 4 kg de carga sobre las rodillas. La pérdida de peso con GLP-1 es el tratamiento más efectivo no quirúrgico para la osteoartritis de rodilla y cadera.',
+      recomendacion:'Los GLP-1 mejorarán significativamente tu movilidad y dolor articular.' },
+    { clave:'Estreñimiento', impacto:-10, nivel:'leve', titulo:'Estreñimiento crónico',
+      riesgo:'El efecto de retraso del vaciamiento gástrico de los GLP-1 puede exacerbar el estreñimiento. Es el efecto adverso gastrointestinal más persistente (presente en 5-10% de pacientes). Puede ser significativo en estreñimiento severo preexistente.',
+      recomendacion:'Aumentar hidratación y fibra antes de iniciar. Considerar laxante osmótico preventivo.' }
+  ],
+  // ── PREGUNTAS ADICIONALES ────────────────────────────
+  adicionales: {
+    opiaceos: { impacto:-30, nivel:'alto', titulo:'Uso reciente de opiáceos',
+      riesgo:'Los opiáceos y GLP-1 tienen efectos opuestos sobre el vaciamiento gástrico: los opiáceos lo retrasan y los GLP-1 también. La combinación puede causar íleo paralítico, obstrucción intestinal funcional y malabsorción severa. Además, los cambios metabólicos del GLP-1 alteran la farmacocinética de los opiáceos.',
+      recomendacion:'Mínimo 3 meses de abstinencia antes de iniciar GLP-1. Coordinación con dolor/adicciones.' },
+    cirugia: { impacto:-10, nivel:'leve', titulo:'Cirugía bariátrica previa',
+      riesgo:'Los GLP-1 post-cirugía bariátrica pueden potenciar excesivamente la pérdida de peso, causando desnutrición proteica. El vaciamiento gástrico ya alterado por la cirugía más el efecto del GLP-1 puede causar síndrome de dumping severo.',
+      recomendacion:'Supervisión nutricional intensiva. Dosis menores. Monitoreo de peso mínimo mensual.' },
+    recetados: { impacto:-10, nivel:'leve', titulo:'Medicamentos recetados actuales',
+      riesgo:'El retraso del vaciamiento gástrico de GLP-1 afecta la absorción de muchos medicamentos orales. Especialmente crítico para: levotiroxina (hipotiroidismo), anticonceptivos orales, antiepilépticos, anticoagulantes orales y antibióticos de ventana terapéutica estrecha.',
+      recomendacion:'Revisión farmacológica completa. Tomar medicamentos críticos 1 hora antes del GLP-1.' }
+  }
+};
+
+function calcular(){
+  const bmi=getBMI();
+  const edad=parseInt(document.getElementById('edad').value);
+  const sexo=document.getElementById('sexo').value;
+  const lbs=parseFloat(document.getElementById('peso').value);
+  const res=document.getElementById('resultado');
+  res.style.display='block';
+
+  if(!bmi||!edad||!sexo){
+    res.innerHTML=`<div class="no-eligible"><div class="no-eligible-icon">⚠️</div><h2>Campos incompletos</h2><p>Por favor completa tu peso, estatura, edad y sexo para ver tu resultado.</p></div>`;
+    res.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // Sin sobrepeso
+  if(bmi<25){
+    res.innerHTML=`
+    <div class="no-eligible">
+      <div class="no-eligible-icon">🎉</div>
+      <h2>¡Tienes un peso saludable!</h2>
+      <p>Tu IMC es <strong>${bmi.toFixed(1)}</strong> — dentro del rango normal (18.5–24.9). Nuestro programa GLP-1 está diseñado para personas con sobrepeso u obesidad, por lo que <strong>no necesitas este tratamiento</strong>.</p>
+      <p style="margin-top:14px">¡Sigue así! Mantener un peso saludable es uno de los mejores regalos que puedes hacerle a tu cuerpo.</p>
+      <a href="index.html" style="display:inline-block;margin-top:24px;background:var(--teal);color:#fff;padding:12px 28px;border-radius:100px;text-decoration:none;font-weight:500;font-size:14px">← Volver al inicio</a>
+    </div>`;
+    res.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // ── Recopilar condiciones marcadas ──────────────────
+  const getCheckedLabels=(groupId)=>[...document.querySelectorAll(`#${groupId} input:checked:not([data-ninguna])`)].map(c=>c.closest('.check-opt').textContent.trim());
+  const g1Labels=getCheckedLabels('g1');
+  const g2Labels=getCheckedLabels('g2');
+  const g3Labels=getCheckedLabels('g3');
+  const ninguna1=document.querySelector('#g1 [data-ninguna="g1"]')?.checked||false;
+  const ninguna2=document.querySelector('#g2 [data-ninguna="g2"]')?.checked||false;
+  const ninguna3=document.querySelector('#g3 [data-ninguna="g3"]')?.checked||false;
+  const allNinguna=ninguna1&&ninguna2&&ninguna3;
+  const allNo=sel.op==='no'&&sel.cir==='no'&&sel.rec==='no';
+  const presionNormal=sel.presion==='normal';
+  const fcLenta=sel.fc==='lenta';
+
+  // ── Analizar condiciones con base médica ────────────
+  const alertas=[]; // {nivel, titulo, riesgo, recomendacion, impacto}
+  let puntuacion=70; // Base: 70 puntos para persona elegible (BMI>=25)
+
+  // Ajuste por BMI
+  if(bmi>=40) puntuacion+=10;
+  else if(bmi>=35) puntuacion+=8;
+  else if(bmi>=30) puntuacion+=5;
+
+  // Ajuste por edad
+  if(edad>=18&&edad<=65) puntuacion+=5;
+  else if(edad>65) puntuacion-=5;
+
+  // Buscar contraindicaciones grupo 1
+  let hasCritico=false;
+  g1Labels.forEach(label=>{
+    MEDICAL_DB.contraindicaciones.forEach(cond=>{
+      if(label.toLowerCase().includes(cond.clave.toLowerCase().substring(0,20))){
+        alertas.push({...cond});
+        puntuacion+=cond.impacto;
+        if(cond.nivel==='critico') hasCritico=true;
+      }
+    });
+  });
+
+  // Buscar condiciones grupos 2 y 3
+  [...g2Labels,...g3Labels].forEach(label=>{
+    MEDICAL_DB.condicionesMonitoreo.forEach(cond=>{
+      if(label.toLowerCase().includes(cond.clave.toLowerCase().substring(0,20))){
+        alertas.push({...cond});
+        puntuacion+=cond.impacto;
+      }
+    });
+  });
+
+  // Preguntas adicionales
+  if(sel.op==='si'){ alertas.push({...MEDICAL_DB.adicionales.opiaceos}); puntuacion+=MEDICAL_DB.adicionales.opiaceos.impacto; }
+  if(sel.cir==='si'){ alertas.push({...MEDICAL_DB.adicionales.cirugia}); puntuacion+=MEDICAL_DB.adicionales.cirugia.impacto; }
+  if(sel.rec==='si'){ alertas.push({...MEDICAL_DB.adicionales.recetados}); puntuacion+=MEDICAL_DB.adicionales.recetados.impacto; }
+
+  // Vitales
+  if(presionNormal) puntuacion+=8;
+  else if(sel.presion==='elevada') puntuacion+=2;
+  else if(sel.presion==='hta1') puntuacion-=5;
+  else if(sel.presion==='hta2') puntuacion-=12;
+
+  if(fcLenta) puntuacion+=7;
+  else if(sel.fc==='normal') puntuacion+=5;
+  else if(sel.fc==='rapida') puntuacion-=5;
+  else if(sel.fc==='muyrápida') puntuacion-=12;
+
+  // Sin condiciones = bono máximo
+  if(allNinguna&&allNo&&presionNormal&&fcLenta) puntuacion=100;
+
+  const compat=Math.max(5,Math.min(100,Math.round(puntuacion)));
+
+  // ── Pérdida de peso ─────────────────────────────────
+  let weightLossMin,weightLossMax;
+  if(bmi>=40){weightLossMin=18;weightLossMax=22;}
+  else if(bmi>=35){weightLossMin=15;weightLossMax=20;}
+  else if(bmi>=30){weightLossMin=12;weightLossMax=17;}
+  else{weightLossMin=8;weightLossMax=12;}
+  // Ajustar por compatibilidad y condiciones beneficiosas
+  const beneficiosas=alertas.filter(a=>a.impacto>0).length;
+  if(compat>=90) weightLossMax=Math.min(weightLossMax+2,25);
+  if(hasCritico){ weightLossMin=Math.max(weightLossMin-3,5); weightLossMax=Math.max(weightLossMax-3,8); }
+  const lbsToLoseMin=Math.round(lbs*(weightLossMin/100));
+  const lbsToLoseMax=Math.round(lbs*(weightLossMax/100));
+  const kgMin=Math.round(lbsToLoseMin*0.453592);
+  const kgMax=Math.round(lbsToLoseMax*0.453592);
+
+  // ── Color y textos según compatibilidad ────────────
+  let ringColor,compatLabel,compatDesc,headerBg;
+  if(compat===100){
+    ringColor='#0F6E56';compatLabel='Candidato Perfecto';
+    compatDesc='Tu perfil de salud es ideal para el tratamiento GLP-1. Sin contraindicaciones detectadas.';
+    headerBg='linear-gradient(135deg,#E1F5EE,#f8faf9)';
+  } else if(compat>=80){
+    ringColor='#0F6E56';compatLabel='Excelente candidato';
+    compatDesc='Tu perfil es muy favorable para el tratamiento GLP-1 con mínimas consideraciones médicas.';
+    headerBg='linear-gradient(135deg,#E1F5EE,#f8faf9)';
+  } else if(compat>=65){
+    ringColor='#1D9E75';compatLabel='Buen candidato';
+    compatDesc='Puedes beneficiarte del tratamiento con seguimiento médico adecuado para tus condiciones.';
+    headerBg='linear-gradient(135deg,#E1F5EE,#f8faf9)';
+  } else if(compat>=45){
+    ringColor='#E65100';compatLabel='Candidato con consideraciones';
+    compatDesc='El tratamiento es posible pero requiere evaluación médica detallada de tus condiciones específicas.';
+    headerBg='linear-gradient(135deg,#FFF3E0,#f8faf9)';
+  } else if(compat>=25){
+    ringColor='#c0392b';compatLabel='Requiere evaluación especializada';
+    compatDesc='Tienes condiciones que requieren valoración médica especializada antes de iniciar el tratamiento.';
+    headerBg='linear-gradient(135deg,#fdecea,#f8faf9)';
+  } else {
+    ringColor='#7B0000';compatLabel='Contraindicación potencial';
+    compatDesc='Tus condiciones actuales presentan contraindicaciones importantes. Un médico debe evaluarte antes.';
+    headerBg='linear-gradient(135deg,#fdecea,#f8faf9)';
+  }
+
+  // ── BMI info ────────────────────────────────────────
+  let bmiCat,bmiColor;
+  if(bmi<25){bmiCat='Normal';bmiColor='#2E7D32';}
+  else if(bmi<30){bmiCat='Sobrepeso';bmiColor='#E65100';}
+  else if(bmi<35){bmiCat='Obesidad I';bmiColor='#c0392b';}
+  else if(bmi<40){bmiCat='Obesidad II';bmiColor='#B71C1C';}
+  else{bmiCat='Obesidad III';bmiColor='#7B0000';}
+
+  // ── Separar alertas por tipo ────────────────────────
+  const criticas=alertas.filter(a=>a.nivel==='critico'||a.nivel==='alto');
+  const moderadas=alertas.filter(a=>a.nivel==='moderado');
+  const favorables=alertas.filter(a=>a.impacto>0&&a.nivel!=='critico');
+  const leves=alertas.filter(a=>a.nivel==='leve'&&a.impacto<=0);
+
+  const renderAlertas=(lista,color,bg,icon)=>lista.length===0?'':lista.map(a=>`
+    <div style="border:0.5px solid ${color}30;border-radius:12px;padding:16px;background:${bg};margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:16px">${icon}</span>
+        <strong style="font-size:14px;color:${color}">${a.titulo}</strong>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;color:${color};background:${color}20;padding:2px 8px;border-radius:10px">${a.impacto>0?'+'+a.impacto:a.impacto} pts</span>
+      </div>
+      <p style="font-size:13px;color:#2a3a35;line-height:1.6;margin-bottom:6px">${a.riesgo}</p>
+      <p style="font-size:12px;color:${color};font-weight:500">💡 ${a.recomendacion}</p>
+    </div>`).join('');
+
+  const r=64;const circ=2*Math.PI*r;const offset=circ-(compat/100)*circ;
+
+  res.innerHTML=`
+  <div class="result-card">
+    <div class="result-header" style="background:${headerBg}">
+      <div class="result-label" style="color:${ringColor}">Análisis de compatibilidad GLP-1</div>
+      <div class="result-title">${compatLabel}</div>
+      <p class="result-sub">${compatDesc}</p>
+      <div class="compat-ring-wrap">
+        <svg viewBox="0 0 160 160">
+          <circle class="ring-bg" cx="80" cy="80" r="${r}"/>
+          <circle class="ring-fill" cx="80" cy="80" r="${r}" stroke="${ringColor}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" id="ringAnim"/>
+        </svg>
+        <div class="compat-pct">
+          <div style="display:flex;align-items:flex-start">
+            <span class="compat-num" id="compatNum" style="color:${ringColor}">0</span>
+            <span class="compat-sign" style="color:${ringColor};margin-top:6px">%</span>
+          </div>
+          <div class="compat-txt">COMPATIBILIDAD</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-item">
+        <div class="metric-val" style="color:${bmiColor}">${bmi.toFixed(1)}</div>
+        <div class="metric-label">IMC / BMI<br><span style="color:${bmiColor};font-weight:500">${bmiCat}</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-val" style="color:var(--teal)">~${lbsToLoseMin}-${lbsToLoseMax} lbs</div>
+        <div class="metric-label">Pérdida estimada<br><span style="color:var(--muted)">(${kgMin}-${kgMax} kg)</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-val" style="color:var(--teal-mid)">${weightLossMin}-${weightLossMax}%</div>
+        <div class="metric-label">Del peso corporal<br><span style="color:var(--muted)">con GLP-1</span></div>
+      </div>
+    </div>
+
+    <div class="weight-section">
+      <div class="weight-title">Pérdida de peso estimada con tratamiento GLP-1</div>
+      <div class="weight-bar-wrap">
+        <div class="weight-bar-label"><span>Escenario conservador</span><span>${weightLossMin}% (~${lbsToLoseMin} lbs / ${kgMin} kg)</span></div>
+        <div class="weight-bar"><div class="weight-fill" id="wfill1" style="width:0%;background:#1D9E75"></div></div>
+      </div>
+      <div class="weight-bar-wrap">
+        <div class="weight-bar-label"><span>Escenario óptimo</span><span>${weightLossMax}% (~${lbsToLoseMax} lbs / ${kgMax} kg)</span></div>
+        <div class="weight-bar"><div class="weight-fill" id="wfill2" style="width:0%;background:#0F6E56"></div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6">* Basado en estudios clínicos SUSTAIN-8, SURMOUNT-1 y SCALE. Resultados individuales varían.</p>
+    </div>
+
+    ${criticas.length>0?`
+    <div class="factors-section">
+      <div class="factors-title" style="color:#c0392b">⚠️ Contraindicaciones o riesgos altos detectados</div>
+      ${renderAlertas(criticas,'#c0392b','#fff5f5','🚨')}
+    </div>`:''}
+
+    ${moderadas.length>0?`
+    <div class="factors-section">
+      <div class="factors-title" style="color:#E65100">⚡ Condiciones que requieren monitoreo médico</div>
+      ${renderAlertas(moderadas,'#E65100','#FFF8F0','⚠️')}
+    </div>`:''}
+
+    ${favorables.length>0?`
+    <div class="factors-section">
+      <div class="factors-title" style="color:#0F6E56">✅ Condiciones donde GLP-1 te beneficia adicionalmente</div>
+      ${renderAlertas(favorables,'#0F6E56','#f0faf7','✅')}
+    </div>`:''}
+
+    ${leves.length>0?`
+    <div class="factors-section">
+      <div class="factors-title" style="color:#5a7a72">ℹ️ Consideraciones menores</div>
+      ${renderAlertas(leves,'#5a7a72','#f7faf9','ℹ️')}
+    </div>`:''}
+
+    ${alertas.length===0?`
+    <div class="factors-section">
+      <div style="text-align:center;padding:20px;background:#E1F5EE;border-radius:12px">
+        <div style="font-size:32px;margin-bottom:8px">🎯</div>
+        <p style="font-size:15px;font-weight:500;color:#0F6E56">Sin contraindicaciones detectadas</p>
+        <p style="font-size:13px;color:#5a7a72;margin-top:4px">Tu perfil de salud no presenta condiciones que contraindiquen el tratamiento GLP-1.</p>
+      </div>
+    </div>`:''}
+
+    <div style="padding:16px 28px;background:#f7faf9;font-size:11px;color:#5a7a72;line-height:1.6;border-top:0.5px solid #d0e8e0">
+      ⚕️ <strong>Aviso médico:</strong> Este análisis es orientativo y educativo, no constituye diagnóstico médico ni reemplaza la evaluación de un profesional de la salud. Toda la información proporcionada se basa en evidencia clínica publicada sobre agonistas del receptor GLP-1 (semaglutida, tirzepatida). La prescripción final es responsabilidad exclusiva del médico tratante.
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-primary" onclick="continuarEvaluacion()">
+        ${hasCritico?'Continuar — el médico evaluará tu caso →':'Continuar con mi evaluación completa →'}
+      </button>
+      <a href="index.html" class="btn-ghost">← Volver al inicio</a>
+    </div>
+  </div>`;
+
+  // Animaciones
+  setTimeout(()=>{
+    const ring=document.getElementById('ringAnim');
+    if(ring) ring.style.strokeDashoffset=offset;
+    let cur=0;const dur=1400;const steps=70;const inc=compat/steps;
+    const timer=setInterval(()=>{
+      cur=Math.min(cur+inc,compat);
+      const el=document.getElementById('compatNum');
+      if(el) el.textContent=Math.round(cur);
+      if(cur>=compat) clearInterval(timer);
+    },dur/steps);
+    setTimeout(()=>{
+      const f1=document.getElementById('wfill1');
+      const f2=document.getElementById('wfill2');
+      if(f1) f1.style.width=(weightLossMin*4)+'%';
+      if(f2) f2.style.width=(weightLossMax*4)+'%';
+    },500);
+  },100);
+
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function continuarEvaluacion(){
+  // Recopilar condiciones grupo 1
+  const cond1=[...document.querySelectorAll('#g1 input:checked')].map(c=>c.value).filter(v=>v!=='ninguna');
+  const ninguna1=document.querySelector('#g1 [data-ninguna="g1"]')?.checked||false;
+
+  // Recopilar condiciones grupo 2
+  const cond2=[...document.querySelectorAll('#g2 input:checked')].map(c=>c.value).filter(v=>v!=='ninguna');
+  const ninguna2=document.querySelector('#g2 [data-ninguna="g2"]')?.checked||false;
+
+  // Recopilar condiciones grupo 3
+  const cond3=[...document.querySelectorAll('#g3 input:checked')].map(c=>c.value).filter(v=>v!=='ninguna');
+  const ninguna3=document.querySelector('#g3 [data-ninguna="g3"]')?.checked||false;
+
+  // Labels reales de las condiciones
+  const getLabels=(groupId)=>[...document.querySelectorAll(`#${groupId} input:checked:not([data-ninguna])`)].map(c=>c.closest('.check-opt').textContent.trim());
+
+  const prescreenerData={
+    // Datos físicos
+    peso_actual: document.getElementById('peso').value,
+    estatura:    document.getElementById('estatura').value,
+    edad:        document.getElementById('edad').value,
+    sexo:        document.getElementById('sexo').value,
+    // Condiciones médicas
+    condiciones_grupo1: ninguna1 ? 'Ninguna de las anteriores' : (getLabels('g1').join(' | ')||'Ninguna de las anteriores'),
+    condiciones_grupo2: ninguna2 ? 'Ninguna de las anteriores' : (getLabels('g2').join(' | ')||'Ninguna de las anteriores'),
+    condiciones_grupo3: ninguna3 ? 'Ninguna de las anteriores' : (getLabels('g3').join(' | ')||'Ninguna de las anteriores'),
+    ninguna1, ninguna2, ninguna3,
+    // Preguntas adicionales
+    opiaceos: sel.op,
+    cirugia:  sel.cir,
+    recetados: sel.rec,
+    // Vitales
+    presion:   sel.presion,
+    fc:        sel.fc,
+    // Labels legibles para mostrar en evaluacion
+    presion_label: sel.presion==='normal'?'< 120/80 — Normal':sel.presion==='elevada'?'120-129/<80 — Elevada':sel.presion==='hta1'?'130-139/80-89 — Hipertensión Etapa 1':'≥140/90 — Hipertensión Etapa 2',
+    fc_label: sel.fc==='lenta'?'<60 lpm — Lenta':sel.fc==='normal'?'60-100 lpm — Normal':sel.fc==='rapida'?'101-110 lpm — Ligeramente rápida':'>110 lpm — Rápida'
+  };
+  sessionStorage.setItem('siscormed_prescreener', JSON.stringify(prescreenerData));
+  window.location.href='evaluacion.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siscormed – Datos Personales</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;
+  --dark:#04342C;--white:#fff;--border:#d0e8e0;--text:#1a2e28;--muted:#5a7a72;
+}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:#f8faf9}
+h1,h2,h3{font-family:'DM Serif Display',serif}
+
+/* TOPBAR */
+.topbar{background:var(--dark);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.topbar-logo-icon{width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.topbar-logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:#fff}
+.back-link{font-size:13px;color:rgba(255,255,255,0.6);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.back-link:hover{color:#fff}
+
+/* PROGRESS */
+.progress-bar{background:var(--teal-light);padding:16px 32px}
+.progress-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.prog-step{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--muted)}
+.prog-step.done{color:var(--teal-mid)}
+.prog-step.active{color:var(--teal)}
+.prog-num{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.prog-step.active .prog-num{background:var(--teal);color:#fff}
+.prog-step.done .prog-num{background:var(--teal-mid);color:#fff;font-size:13px}
+.prog-line{width:36px;height:2px;background:var(--border);margin:0 6px}
+.prog-line.done{background:var(--teal-mid)}
+
+/* MAIN */
+.main{padding:36px 32px;max-width:700px;margin:0 auto}
+.page-label{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--teal-mid);text-transform:uppercase;margin-bottom:8px}
+.page-title{font-size:28px;color:var(--dark);margin-bottom:8px}
+.page-sub{color:var(--muted);font-size:15px;margin-bottom:32px;line-height:1.6}
+
+/* SUMMARY CARD */
+.summary-card{background:var(--teal-light);border:0.5px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px}
+.summary-icon{width:40px;height:40px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.summary-text{font-size:13px;color:var(--muted);line-height:1.5}
+.summary-text strong{color:var(--teal);font-weight:500}
+
+/* FORM CARD */
+.form-card{background:#fff;border:0.5px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:0 2px 12px rgba(15,110,86,0.05)}
+.form-card h3{font-size:17px;color:var(--dark);padding-bottom:10px;border-bottom:0.5px solid var(--border);margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.full{grid-template-columns:1fr}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:13px;font-weight:500;color:var(--muted)}
+.form-group input,.form-group select{
+  font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;
+  border:0.5px solid var(--border);border-radius:8px;
+  background:#fafffe;color:var(--text);outline:none;transition:border-color 0.2s
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--teal-mid)}
+.form-group input:disabled,.form-group select:disabled{background:#f0f5f3;color:var(--muted);cursor:not-allowed}
+.field-note{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* REVIEW CARD */
+.review-card{background:#fff;border:0.5px solid var(--border);border-radius:16px;padding:24px 28px;margin-bottom:20px;box-shadow:0 2px 12px rgba(15,110,86,0.05)}
+.review-card h3{font-size:17px;color:var(--dark);padding-bottom:10px;border-bottom:0.5px solid var(--border);margin-bottom:16px}
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.review-item{background:#f7faf9;border-radius:8px;padding:10px 14px}
+.review-item .ri-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.review-item .ri-val{font-size:13px;color:var(--dark);font-weight:500}
+.review-item.full{grid-column:1/-1}
+
+/* CHECKBOX TERMS */
+.terms-check{display:flex;align-items:flex-start;gap:10px;padding:16px;background:var(--teal-light);border:0.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;line-height:1.6;color:var(--text)}
+.terms-check input{accent-color:var(--teal);margin-top:2px;flex-shrink:0;width:16px;height:16px}
+
+/* SUBMIT */
+.submit-btn{width:100%;background:var(--teal);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:17px;border-radius:12px;border:none;cursor:pointer;transition:background 0.2s,transform 0.2s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.submit-btn:hover{background:var(--dark);transform:translateY(-1px)}
+.submit-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none}
+.error-msg{background:#fff0f0;border:0.5px solid #f5c6c6;color:#c0392b;padding:12px 16px;border-radius:8px;font-size:13px;margin-top:12px;display:none}
+.trust-row{display:flex;gap:20px;flex-wrap:wrap;padding:12px 0 0}
+.trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.trust-dot{width:6px;height:6px;border-radius:50%;background:var(--teal-mid)}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:60px 32px;max-width:520px;margin:0 auto}
+.success-icon{width:80px;height:80px;background:var(--teal-light);border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center}
+.flow-steps{margin:28px 0;text-align:left}
+.flow-step{display:flex;gap:14px;padding:14px;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;background:#fff}
+.flow-step-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.s1{background:var(--teal-light);color:var(--teal)}
+.s2{background:#FFF3E0;color:#E65100}
+.s3{background:#EDE7F6;color:#4527A0}
+.flow-step h4{font-size:14px;font-weight:500;margin-bottom:2px;color:var(--dark)}
+.flow-step p{font-size:12px;color:var(--muted);line-height:1.5}
+
+@media(max-width:540px){
+  .form-grid,.form-grid.three{grid-template-columns:1fr}
+  .review-grid{grid-template-columns:1fr}
+  .main{padding:24px 16px}
+  .topbar{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<div id="main-page">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">
+      <div class="topbar-logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+      </div>
+      <span class="topbar-logo-text">Siscormed</span>
+    </a>
+    <button class="back-link" onclick="history.back()">← Volver a la evaluación</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="progress-inner">
+      <div class="prog-step done"><div class="prog-num">✓</div><span>Elegibilidad</span></div>
+      <div class="prog-line done"></div>
+      <div class="prog-step done"><div class="prog-num">✓</div><span>Historial médico</span></div>
+      <div class="prog-line done"></div>
+      <div class="prog-step active"><div class="prog-num">3</div><span>Tus datos</span></div>
+      <div class="prog-line"></div>
+      <div class="prog-step"><div class="prog-num">4</div><span>Laboratorio</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-label">Paso 3 de 4</div>
+    <h2 class="page-title">Datos de envío y facturación</h2>
+    <p class="page-sub">Necesitamos esta información para procesar tu solicitud y coordinar la entrega de tu medicamento.</p>
+
+    <!-- AVISO -->
+    <div class="summary-card">
+      <div class="summary-icon">✅</div>
+      <div class="summary-text">Tu evaluación médica fue completada. <strong>Un último paso:</strong> completa tus datos personales para enviar todo al laboratorio.</div>
+    </div>
+
+    <!-- DATOS PERSONALES -->
+    <div class="form-card">
+      <h3>Datos personales</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombres *</label>
+          <input type="text" id="nombres" placeholder="Ej. María Fernanda">
+        </div>
+        <div class="form-group">
+          <label>Apellidos *</label>
+          <input type="text" id="apellidos" placeholder="Ej. García López">
+        </div>
+        <div class="form-group">
+          <label>Cédula de identidad *</label>
+          <input type="text" id="cedula" placeholder="Ej. 0912345678" maxlength="10">
+          <span class="field-note">10 dígitos sin guiones</span>
+        </div>
+        <div class="form-group">
+          <label>RUC (opcional)</label>
+          <input type="text" id="ruc" placeholder="Ej. 0912345678001" maxlength="13">
+          <span class="field-note">13 dígitos — solo si necesitas factura</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIRECCIÓN -->
+    <div class="form-card">
+      <h3>Dirección de domicilio</h3>
+      <div class="form-grid full" style="gap:14px">
+        <div class="form-group">
+          <label>Dirección completa *</label>
+          <input type="text" id="direccion" placeholder="Ej. Av. 9 de Octubre 123 y Malecón, Edif. Torre Norte, Piso 4">
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:14px">
+        <div class="form-group">
+          <label>País</label>
+          <input type="text" id="pais" value="Ecuador" disabled>
+        </div>
+        <div class="form-group">
+          <label>Ciudad *</label>
+          <select id="ciudad">
+            <option value="">Seleccionar ciudad...</option>
+            <option value="Guayaquil">Guayaquil</option>
+            <option value="Quito">Quito</option>
+          </select>
+          <span class="field-note">Por el momento solo Guayaquil y Quito</span>
+        </div>
+        <div class="form-group">
+          <label>Sector / Barrio</label>
+          <input type="text" id="sector" placeholder="Ej. Urdesa, Miraflores, La Carolina">
+        </div>
+        <div class="form-group">
+          <label>Referencia</label>
+          <input type="text" id="referencia" placeholder="Ej. Frente al parque, casa azul">
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMEN DE EVALUACIÓN -->
+    <div class="review-card" id="reviewCard">
+      <h3>Resumen de tu evaluación</h3>
+      <div class="review-grid" id="reviewGrid">
+        <div class="review-item"><div class="ri-label">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- TÉRMINOS -->
+    <div class="form-card" style="padding:20px 24px">
+      <label class="terms-check" id="termsLabel">
+        <input type="checkbox" id="terms">
+        <span>Acepto que mis datos médicos y personales sean procesados por Siscormed y compartidos con el laboratorio y médico asignado para fines del tratamiento. Entiendo que toda la información es confidencial y está protegida.</span>
+      </label>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="enviarAlLaboratorio()">
+      <span id="btnText">Confirmar y enviar al laboratorio</span>
+      <span id="btnArrow">🔬</span>
+    </button>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="trust-row">
+      <div class="trust-item"><div class="trust-dot"></div> Datos encriptados</div>
+      <div class="trust-item"><div class="trust-dot"></div> 100% confidencial</div>
+      <div class="trust-item"><div class="trust-dot"></div> Solo Ecuador</div>
+    </div>
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h2 style="font-size:28px;color:var(--dark);margin-bottom:10px">¡Enviado al laboratorio!</h2>
+  <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:8px">Tu evaluación médica y datos personales fueron recibidos exitosamente. Ahora sigue el proceso:</p>
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-step-num s1">1</div>
+      <div><h4>Revisión de laboratorio</h4><p>El laboratorio revisará tu perfil médico para determinar elegibilidad. Tiempo estimado: 24-48 hrs.</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num s2">2</div>
+      <div><h4>Aprobación médica</h4><p>Un médico certificado revisará tu caso y aprobará tu plan de medicación personalizado.</p></div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-step-num s3">3</div>
+      <div><h4>Envío a tu domicilio</h4><p>Una vez aprobado, tu medicamento se envía a la dirección que registraste.</p></div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">Recibirás un correo de confirmación con los próximos pasos. ¡Bienvenido a Siscormed!</p>
+  <a href="index.html" style="display:inline-block;margin-top:24px;background:var(--teal);color:#fff;padding:12px 28px;border-radius:100px;text-decoration:none;font-weight:500;font-size:14px">← Volver al inicio</a>
+</div>
+
+<script>
+const SUPABASE_URL='https://wwskicwdqbufrpuarmzk.supabase.co';
+const SUPABASE_KEY='sb_publishable_DosZhDbnOECHthVGFlMXTQ_cqUYLLFq';
+
+// Cargar payload desde sessionStorage
+let payload={};
+try{
+  const saved=sessionStorage.getItem('siscormed_payload');
+  if(saved)payload=JSON.parse(saved);
+  else{
+    // Si no hay datos, redirigir a evaluacion
+    window.location.href='evaluacion.html';
+  }
+}catch(e){window.location.href='evaluacion.html';}
+
+// Mostrar resumen
+function renderReview(){
+  if(!payload.nombre)return;
+  const grid=document.getElementById('reviewGrid');
+  const bmiCat=payload.bmi<18.5?'Bajo peso':payload.bmi<25?'Normal':payload.bmi<30?'Sobrepeso':payload.bmi<35?'Obesidad I':'Obesidad II+';
+  grid.innerHTML=`
+    <div class="review-item"><div class="ri-label">Nombre</div><div class="ri-val">${payload.nombre||'-'}</div></div>
+    <div class="review-item"><div class="ri-label">Email</div><div class="ri-val">${payload.email||'-'}</div></div>
+    <div class="review-item"><div class="ri-label">Peso actual</div><div class="ri-val">${payload.peso_actual} lbs</div></div>
+    <div class="review-item"><div class="ri-label">Estatura</div><div class="ri-val">${payload.estatura} cm</div></div>
+    <div class="review-item"><div class="ri-label">IMC / BMI</div><div class="ri-val">${payload.bmi} — ${bmiCat}</div></div>
+    <div class="review-item"><div class="ri-label">Sexo</div><div class="ri-val">${payload.sexo||'-'}</div></div>
+    <div class="review-item"><div class="ri-label">Presión arterial</div><div class="ri-val">${payload.presion_arterial||'-'}</div></div>
+    <div class="review-item"><div class="ri-label">Frecuencia cardíaca</div><div class="ri-val">${payload.frecuencia_cardiaca||'-'}</div></div>
+    <div class="review-item full"><div class="ri-label">Condiciones grupo 1</div><div class="ri-val">${payload.condiciones_grupo1||'Ninguna'}</div></div>
+    <div class="review-item full"><div class="ri-label">Condiciones grupo 2</div><div class="ri-val">${payload.condiciones_grupo2||'Ninguna'}</div></div>
+    <div class="review-item full"><div class="ri-label">Condiciones grupo 3</div><div class="ri-val">${payload.condiciones_grupo3||'Ninguna'}</div></div>
+  `;
+}
+renderReview();
+
+// Validar cédula ecuatoriana
+function validarCedula(cedula){
+  if(!/^\d{10}$/.test(cedula))return false;
+  const prov=parseInt(cedula.substring(0,2));
+  if(prov<1||prov>24)return false;
+  const coef=[2,1,2,1,2,1,2,1,2];
+  let suma=0;
+  for(let i=0;i<9;i++){
+    let val=parseInt(cedula[i])*coef[i];
+    if(val>=10)val-=9;
+    suma+=val;
+  }
+  const digitoVerif=(10-(suma%10))%10;
+  return digitoVerif===parseInt(cedula[9]);
+}
+
+async function enviarAlLaboratorio(){
+  const nombres=document.getElementById('nombres').value.trim();
+  const apellidos=document.getElementById('apellidos').value.trim();
+  const cedula=document.getElementById('cedula').value.trim();
+  const ruc=document.getElementById('ruc').value.trim();
+  const direccion=document.getElementById('direccion').value.trim();
+  const ciudad=document.getElementById('ciudad').value;
+  const sector=document.getElementById('sector').value.trim();
+  const referencia=document.getElementById('referencia').value.trim();
+  const terms=document.getElementById('terms').checked;
+  const errorEl=document.getElementById('errorMsg');
+  errorEl.style.display='none';
+
+  if(!nombres||!apellidos||!cedula||!direccion||!ciudad){
+    errorEl.textContent='Por favor completa todos los campos obligatorios (*)';
+    errorEl.style.display='block';
+    return;
+  }
+  if(!validarCedula(cedula)){
+    errorEl.textContent='La cédula ingresada no es válida. Verifica los 10 dígitos.';
+    errorEl.style.display='block';
+    return;
+  }
+  if(ruc&&!/^\d{13}$/.test(ruc)){
+    errorEl.textContent='El RUC debe tener 13 dígitos.';
+    errorEl.style.display='block';
+    return;
+  }
+  if(!terms){
+    errorEl.textContent='Debes aceptar los términos para continuar.';
+    errorEl.style.display='block';
+    return;
+  }
+
+  // Combinar payload médico + datos personales
+  const finalPayload={
+    ...payload,
+    nombres,
+    apellidos,
+    nombre_completo:`${nombres} ${apellidos}`,
+    cedula,
+    ruc:ruc||null,
+    direccion,
+    ciudad,
+    sector:sector||null,
+    referencia:referencia||null,
+    pais:'Ecuador',
+    estado:'pendiente'
+  };
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  document.getElementById('btnText').textContent='Enviando al laboratorio...';
+  document.getElementById('btnArrow').textContent='⏳';
+
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify(finalPayload)
+    });
+
+    if(res.ok){
+      sessionStorage.removeItem('siscormed_payload');
+      document.getElementById('main-page').style.display='none';
+      document.getElementById('success-screen').style.display='block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      const err=await res.json();
+      errorEl.textContent='Error: '+(err.message||err.hint||'Verifica tu configuración de Supabase.');
+      errorEl.style.display='block';
+      btn.disabled=false;
+      document.getElementById('btnText').textContent='Confirmar y enviar al laboratorio';
+      document.getElementById('btnArrow').textContent='🔬';
+    }
+  }catch(e){
+    errorEl.textContent='Error de conexión: '+e.message;
+    errorEl.style.display='block';
+    btn.disabled=false;
+    document.getElementById('btnText').textContent='Confirmar y enviar al laboratorio';
+    document.getElementById('btnArrow').textContent='🔬';
+  }
+}
+</script>
+</body>
+</html>

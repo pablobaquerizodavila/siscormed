@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siscormed – Panel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;
+  --dark:#04342C;--white:#fff;--border:#d0e8e0;--text:#1a2e28;--muted:#5a7a72;
+  --red:#c0392b;--orange:#E65100;--purple:#4527A0;
+}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:#f0f5f3;min-height:100vh}
+h1,h2,h3{font-family:'DM Serif Display',serif}
+
+/* ── AUTH SCREENS ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--dark) 0%,#0F6E56 100%);padding:24px}
+.auth-card{background:#fff;border-radius:20px;padding:36px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.auth-logo{display:flex;align-items:center;gap:8px;margin-bottom:24px;justify-content:center}
+.auth-logo-icon{width:34px;height:34px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.auth-logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:var(--dark)}
+.auth-title{font-size:22px;color:var(--dark);margin-bottom:4px;text-align:center}
+.auth-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
+.auth-tabs{display:flex;background:#f7faf9;border-radius:10px;padding:4px;margin-bottom:20px;gap:4px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:8px;color:var(--muted);transition:all 0.2s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
+.auth-tab.active{background:#fff;color:var(--teal);box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-group label{font-size:13px;font-weight:500;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;border:0.5px solid var(--border);border-radius:8px;outline:none;transition:border-color 0.2s;color:var(--text);background:#fafffe;width:100%}
+.form-group input:focus,.form-group select:focus{border-color:var(--teal-mid)}
+.form-group textarea{resize:vertical;min-height:72px}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.auth-btn{width:100%;background:var(--teal);color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:13px;border-radius:10px;border:none;cursor:pointer;transition:background 0.2s;margin-top:4px}
+.auth-btn:hover{background:var(--dark)}
+.auth-btn:disabled{background:var(--muted);cursor:not-allowed}
+.auth-link{font-size:13px;color:var(--teal);text-decoration:none;cursor:pointer;display:inline-block;margin-top:12px;text-align:center;width:100%}
+.auth-link:hover{text-decoration:underline}
+.auth-error{background:#fff0f0;border:0.5px solid #f5c6c6;color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px;display:none}
+.auth-success{background:#E1F5EE;border:0.5px solid #b2dfdb;color:var(--teal);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:8px;display:none}
+.rol-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.rol-card{border:0.5px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fff}
+.rol-card:hover{border-color:var(--teal-mid);background:var(--teal-light)}
+.rol-card.selected{border-color:var(--teal);background:var(--teal-light);box-shadow:0 0 0 2px #b2dfdb}
+.rol-card-icon{font-size:24px;margin-bottom:4px}
+.rol-card-name{font-size:12px;font-weight:600;color:var(--dark)}
+.rol-card-desc{font-size:10px;color:var(--muted);margin-top:2px}
+.pass-strength{height:4px;border-radius:2px;margin-top:4px;transition:all 0.3s;background:#f0f0f0}
+.field-note{font-size:11px;color:var(--muted);margin-top:3px}
+.pending-screen{text-align:center;padding:20px 0}
+.pending-icon{font-size:48px;margin-bottom:12px}
+
+/* ── APP LAYOUT ── */
+.app{display:none;min-height:100vh;flex-direction:column}
+.app.show{display:flex}
+.topbar{background:var(--dark);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-logo{display:flex;align-items:center;gap:8px}
+.topbar-logo-icon{width:28px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.topbar-logo-text{font-family:'DM Serif Display',serif;font-size:17px;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.role-badge{font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500}
+.badge-admin{background:#E1F5EE;color:var(--teal)}
+.badge-lab{background:#FFF3E0;color:var(--orange)}
+.badge-medico{background:#EDE7F6;color:var(--purple)}
+.topbar-user{font-size:13px;color:#9FE1CB}
+.logout-btn{font-size:12px;color:#9FE1CB;background:transparent;border:0.5px solid rgba(255,255,255,0.2);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{background:rgba(255,255,255,0.1)}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:220px;background:#fff;border-right:0.5px solid var(--border);padding:20px 0;flex-shrink:0}
+.nav-sep{font-size:10px;font-weight:500;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:14px 20px 4px;opacity:0.6}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:14px;cursor:pointer;color:var(--muted);transition:all 0.15s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--teal-light);color:var(--teal)}
+.nav-item.active{background:var(--teal-light);color:var(--teal);border-left-color:var(--teal);font-weight:500}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+.nav-count{margin-left:auto;background:var(--teal);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500}
+.nav-count.orange{background:#E65100}
+.content{flex:1;overflow-y:auto;padding:28px}
+.page{display:none}
+.page.active{display:block}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+.stat-num{font-size:30px;font-family:'DM Serif Display',serif;color:var(--dark)}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-dot{width:8px;height:8px;border-radius:50%;margin:6px auto 0}
+
+/* ── TABLE ── */
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.table-title{font-size:20px;color:var(--dark)}
+.search-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search-input{font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 14px;border:0.5px solid var(--border);border-radius:8px;outline:none;width:200px;transition:border-color 0.2s}
+.search-input:focus{border-color:var(--teal-mid)}
+.filter-select{font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;border:0.5px solid var(--border);border-radius:8px;outline:none;cursor:pointer;background:#fff}
+.table-wrap{background:#fff;border:0.5px solid var(--border);border-radius:14px;overflow:hidden}
+.table-wrap table{width:100%;border-collapse:collapse}
+.table-wrap th{background:#f7faf9;font-size:11px;font-weight:500;color:var(--muted);text-align:left;padding:12px 16px;border-bottom:0.5px solid var(--border);text-transform:uppercase;letter-spacing:0.5px}
+.table-wrap td{font-size:13px;padding:12px 16px;border-bottom:0.5px solid #f0f5f3;vertical-align:middle}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:#fafffe;cursor:pointer}
+.empty-state{text-align:center;padding:40px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.loading{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+
+/* ── BADGES ── */
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.status-revision{background:#EDE7F6;color:#4527A0}
+.status-aprobado-med{background:#E1F5EE;color:#0F6E56}
+.status-lab-pendiente{background:#FFF9C4;color:#E65100}
+.status-lab-proceso{background:#E3F2FD;color:#1565C0}
+.status-lab-listo{background:#E8F5E9;color:#2E7D32}
+.status-enviado{background:#C8E6C9;color:#1B5E20}
+.status-rechazado{background:#fdecea;color:var(--red)}
+.usr-pendiente{background:#FFF9C4;color:#E65100}
+.usr-aprobado{background:#E1F5EE;color:#0F6E56}
+.usr-rechazado{background:#fdecea;color:var(--red)}
+.usr-suspendido{background:#f0f0f0;color:#888}
+.bmi-chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
+.bmi-normal{background:#E1F5EE;color:var(--teal)}
+.bmi-sobre{background:#FFF3E0;color:var(--orange)}
+.bmi-obeso{background:#fdecea;color:var(--red)}
+.bmi-bajo{background:#e3f2fd;color:#1565C0}
+
+/* ── ACTION BUTTONS ── */
+.action-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:opacity 0.2s;white-space:nowrap}
+.action-btn:hover{opacity:0.8}
+.btn-ver{background:#f0f5f3;color:var(--muted)}
+.btn-rechazar{background:#fdecea;color:var(--red)}
+
+/* ── LAB TABS ── */
+.lab-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.lab-tab{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:7px 16px;border-radius:20px;border:0.5px solid var(--border);background:#fff;cursor:pointer;transition:all 0.2s;color:var(--muted)}
+.lab-tab:hover{border-color:var(--teal-mid);color:var(--teal)}
+.lab-tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.lab-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.lab-stat{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.lab-stat-num{font-size:28px;font-family:'DM Serif Display',serif}
+.lab-stat-label{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:#fff;border-bottom:0.5px solid var(--border);z-index:1}
+.modal-title{font-size:18px;color:var(--dark)}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:0}
+.modal-body{padding:20px 24px}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;padding:16px 24px;border-top:0.5px solid var(--border);background:#f7faf9}
+.modal-btn{padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:opacity 0.2s}
+.modal-btn:hover{opacity:0.85}
+.detail-section{margin-bottom:18px}
+.detail-section h4{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{background:#f7faf9;border-radius:8px;padding:10px 12px}
+.detail-item .di-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.detail-item .di-val{font-size:13px;color:var(--dark);font-weight:500}
+.detail-full{background:#f7faf9;border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.detail-full .di-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.detail-full .di-val{font-size:12px;color:var(--dark);line-height:1.5}
+
+/* ── TIMELINE ── */
+.timeline-title{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,var(--teal-mid),var(--border))}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-24px;top:10px;width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;z-index:1}
+.tl-card{background:#f7faf9;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
+.tl-card.tl-current{background:linear-gradient(135deg,#E1F5EE,#f0faf7);border-color:#b2dfdb}
+.tl-card.tl-rejected{background:#fff5f5;border-color:#f5c6c6}
+.tl-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.tl-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap}
+.tl-bottom{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tl-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.tl-user{font-size:12px;color:var(--text);font-weight:500}
+.tl-role{font-size:11px;color:var(--muted)}
+.tl-time{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.tl-duration{font-size:11px;color:var(--teal);background:#E1F5EE;border:0.5px solid #b2dfdb;padding:2px 8px;border-radius:8px;font-weight:500}
+.tl-loading{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+.tl-empty{text-align:center;padding:16px;color:var(--muted);font-size:13px;background:#f7faf9;border-radius:8px}
+
+/* ── MED CARDS ── */
+.med-card{border:0.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.2s;background:#fff;text-align:center}
+.med-card:hover{border-color:var(--teal-mid);background:var(--teal-light)}
+.med-card.selected{border-color:var(--teal);background:var(--teal-light);box-shadow:0 0 0 2px #b2dfdb}
+.med-icon{font-size:22px;margin-bottom:4px}
+.med-name{font-size:13px;font-weight:600;color:var(--dark)}
+.med-dosis{font-size:11px;color:var(--muted);margin-top:2px}
+.motivo-opt{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 10px;border:0.5px solid var(--border);border-radius:8px;cursor:pointer;transition:background 0.15s}
+.motivo-opt:hover{background:#fff5f5}
+.motivo-opt input{accent-color:#c0392b;flex-shrink:0}
+.revert-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;background:#fff}
+
+/* ── TOAST & ANIMATIONS ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.sidebar{display:none}.lab-stats{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- PANTALLA LOGIN                             -->
+<!-- ══════════════════════════════════════════ -->
+<div class="auth-wrap" id="screenLogin">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg></div>
+      <span class="auth-logo-text">Siscormed</span>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login',this)">Iniciar sesión</button>
+      <button class="auth-tab" onclick="showAuthTab('registro',this)">Registrarse</button>
+      <button class="auth-tab" onclick="showAuthTab('recuperar',this)">Recuperar acceso</button>
+    </div>
+
+    <!-- TAB: LOGIN -->
+    <div id="tabLogin">
+      <div class="form-group"><label>Usuario o email</label><input type="text" id="loginUser" placeholder="usuario o email@siscormed.org" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="auth-btn" onclick="doLogin()">Ingresar al panel</button>
+      <div class="auth-error" id="loginError"></div>
+    </div>
+
+    <!-- TAB: REGISTRO -->
+    <div id="tabRegistro" style="display:none">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;text-align:center">Selecciona tu tipo de acceso:</p>
+      <div class="rol-cards" id="rolCards">
+        <div class="rol-card" onclick="selectRol('admin',this)">
+          <div class="rol-card-icon">👑</div>
+          <div class="rol-card-name">Admin</div>
+          <div class="rol-card-desc">Gestor del sistema</div>
+        </div>
+        <div class="rol-card" onclick="selectRol('medico',this)">
+          <div class="rol-card-icon">👨‍⚕️</div>
+          <div class="rol-card-name">Médico</div>
+          <div class="rol-card-desc">Aprobación médica</div>
+        </div>
+        <div class="rol-card" onclick="selectRol('laboratorio',this)">
+          <div class="rol-card-icon">🔬</div>
+          <div class="rol-card-name">Laboratorio</div>
+          <div class="rol-card-desc">Procesamiento</div>
+        </div>
+      </div>
+
+      <!-- Formulario base -->
+      <div id="regFormBase" style="display:none">
+        <div class="form-grid-2">
+          <div class="form-group"><label>Nombre *</label><input type="text" id="regNombre" placeholder="María"></div>
+          <div class="form-group"><label>Apellido *</label><input type="text" id="regApellido" placeholder="García"></div>
+        </div>
+        <div class="form-group"><label>Email institucional *</label><input type="email" id="regEmail" placeholder="correo@siscormed.org"></div>
+        <div class="form-group"><label>Email de recuperación *</label><input type="email" id="regEmailRec" placeholder="correo_personal@gmail.com"><span class="field-note">Se usará para recuperar tu acceso</span></div>
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="regTelefono" placeholder="+593 99 000 0000"></div>
+        <div class="form-grid-2">
+          <div class="form-group"><label>Usuario *</label><input type="text" id="regUsername" placeholder="usuario123" oninput="checkUsername()"></div>
+          <div class="form-group"><label>Contraseña *</label>
+            <input type="password" id="regPassword" placeholder="Mín. 8 caracteres" oninput="checkPassword()">
+            <div class="pass-strength" id="passStrength"></div>
+          </div>
+        </div>
+
+        <!-- Campos específicos de médico -->
+        <div id="camposMedico" style="display:none">
+          <div class="form-group"><label>Número de licencia médica *</label><input type="text" id="regLicencia" placeholder="Ej. MSP-123456"><span class="field-note">Emitida por el Ministerio de Salud Pública del Ecuador</span></div>
+          <div class="form-group"><label>Especialidad *</label>
+            <select id="regEspecialidad">
+              <option value="">Seleccionar...</option>
+              <option>Medicina General</option>
+              <option>Endocrinología</option>
+              <option>Medicina Interna</option>
+              <option>Nutriología</option>
+              <option>Cardiología</option>
+              <option>Otra especialidad</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Institución / Hospital</label><input type="text" id="regInstitucion" placeholder="Hospital Clínica Santa María"></div>
+        </div>
+
+        <!-- Campos específicos de laboratorio -->
+        <div id="camposLab" style="display:none">
+          <div class="form-group"><label>Nombre del laboratorio *</label><input type="text" id="regNombreLab" placeholder="Laboratorio Farmacéutico XYZ"></div>
+          <div class="form-group"><label>Número de permiso de funcionamiento *</label><input type="text" id="regPermiso" placeholder="Ej. ARCSA-2024-001234"><span class="field-note">Emitido por la ARCSA (Agencia de Regulación y Control Sanitario)</span></div>
+          <div class="form-group"><label>Dirección del laboratorio *</label><input type="text" id="regDireccionLab" placeholder="Av. Principal 123, Guayaquil"></div>
+          <div class="form-group"><label>Ciudad</label>
+            <select id="regCiudadLab">
+              <option value="">Seleccionar...</option>
+              <option>Guayaquil</option>
+              <option>Quito</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:4px">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:400">
+            <input type="checkbox" id="regTerminos" style="margin-top:2px;accent-color:var(--teal)">
+            <span>Acepto los términos de uso y confirmo que la información proporcionada es verídica</span>
+          </label>
+        </div>
+
+        <button class="auth-btn" id="regBtn" onclick="doRegistro()">Enviar solicitud de registro</button>
+        <div class="auth-error" id="regError"></div>
+        <div class="auth-success" id="regSuccess"></div>
+      </div>
+    </div>
+
+    <!-- TAB: RECUPERAR -->
+    <div id="tabRecuperar" style="display:none">
+      <div id="recStep1">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.6">Ingresa tu usuario o email de recuperación y te enviaremos las instrucciones.</p>
+        <div class="form-group"><label>Usuario o email de recuperación</label><input type="text" id="recInput" placeholder="usuario o correo@gmail.com"></div>
+        <button class="auth-btn" onclick="doRecuperar()">Enviar instrucciones</button>
+        <div class="auth-error" id="recError"></div>
+        <div class="auth-success" id="recSuccess"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- PANTALLA: SOLICITUD PENDIENTE             -->
+<!-- ══════════════════════════════════════════ -->
+<div class="auth-wrap" id="screenPendiente" style="display:none">
+  <div class="auth-card" style="text-align:center">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg></div>
+      <span class="auth-logo-text">Siscormed</span>
+    </div>
+    <div style="font-size:48px;margin-bottom:16px">⏳</div>
+    <h2 style="font-size:20px;color:var(--dark);margin-bottom:10px">Solicitud en revisión</h2>
+    <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px">Tu solicitud de acceso ha sido recibida y está siendo revisada por el administrador principal. Recibirás una notificación en tu email cuando sea aprobada.</p>
+    <div style="background:#f7faf9;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:var(--muted)">
+      <strong id="pendNombre"></strong><br>
+      Rol solicitado: <span id="pendRol"></span>
+    </div>
+    <button class="auth-btn" style="background:var(--muted)" onclick="volverLogin()">← Volver al login</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- APP PRINCIPAL                             -->
+<!-- ══════════════════════════════════════════ -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg></div>
+      <span class="topbar-logo-text">Siscormed</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <span class="role-badge" id="roleBadge"></span>
+      <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="nav-sep">General</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" id="nav-pacientes" onclick="showPage('pacientes',this)"><span class="nav-icon">👥</span> Pacientes<span class="nav-count" id="navCount">0</span></div>
+      <div class="nav-sep">Flujo</div>
+      <div class="nav-item" id="nav-revision" onclick="showPage('revision',this)"><span class="nav-icon">🩺</span> Revisión médica<span class="nav-count orange" id="navRevision">0</span></div>
+      <div class="nav-item" id="nav-laboratorio" onclick="showPage('laboratorio',this)"><span class="nav-icon">🔬</span> Laboratorio<span class="nav-count" id="navLab">0</span></div>
+      <div class="nav-item" id="nav-enviados" onclick="showPage('enviados',this)"><span class="nav-icon">📦</span> Enviados<span class="nav-count" id="navEnviados">0</span></div>
+      <div class="nav-sep">Admin</div>
+      <div class="nav-item" id="nav-usuarios" onclick="showPage('usuarios',this)" style="display:none"><span class="nav-icon">👤</span> Usuarios<span class="nav-count orange" id="navUsuarios">0</span></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <h2 style="margin-bottom:20px;color:var(--dark)">Dashboard</h2>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num" id="statTotal">-</div><div class="stat-label">Total pacientes</div><div class="stat-dot" style="background:var(--teal)"></div></div>
+          <div class="stat-card"><div class="stat-num" id="statRevision">-</div><div class="stat-label">En revisión médica</div><div class="stat-dot" style="background:#4527A0"></div></div>
+          <div class="stat-card"><div class="stat-num" id="statLab">-</div><div class="stat-label">En laboratorio</div><div class="stat-dot" style="background:#1565C0"></div></div>
+          <div class="stat-card"><div class="stat-num" id="statEnviados">-</div><div class="stat-label">Enviados</div><div class="stat-dot" style="background:#2E7D32"></div></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Paciente</th><th>Fecha</th><th>BMI</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="recentTable"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- TODOS LOS PACIENTES -->
+      <div class="page" id="page-pacientes">
+        <div class="table-header">
+          <h2 class="table-title">Todos los pacientes</h2>
+          <div class="search-bar">
+            <input class="search-input" id="searchInput" placeholder="🔍 Buscar..." oninput="filterTable()">
+            <select class="filter-select" id="filterStatus" onchange="filterTable()">
+              <option value="">Todos los estados</option>
+              <option value="en_revision_medica">🩺 Revisión médica</option>
+              <option value="aprobado_medico">✅ Aprobado</option>
+              <option value="lab_pendiente">🟡 Lab: Pendiente</option>
+              <option value="lab_en_proceso">🔵 Lab: En proceso</option>
+              <option value="lab_listo">🟢 Lab: Listo</option>
+              <option value="enviado">📦 Enviado</option>
+              <option value="rechazado">✗ Rechazado</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Email</th><th>BMI</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="allTable"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- REVISIÓN MÉDICA -->
+      <div class="page" id="page-revision">
+        <h2 style="margin-bottom:20px;color:var(--dark)">🩺 Revisión médica</h2>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Email</th><th>BMI</th><th>Compatibilidad</th><th>Fecha</th><th>Acciones</th></tr></thead>
+          <tbody id="revisionTable"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- LABORATORIO -->
+      <div class="page" id="page-laboratorio">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <h2 style="color:var(--dark)">🔬 Laboratorio</h2>
+        </div>
+        <div class="lab-stats">
+          <div class="lab-stat"><div class="lab-stat-num" id="labCountPend" style="color:#E65100">-</div><div class="lab-stat-label">🟡 Pendiente</div></div>
+          <div class="lab-stat"><div class="lab-stat-num" id="labCountProceso" style="color:#1565C0">-</div><div class="lab-stat-label">🔵 En proceso</div></div>
+          <div class="lab-stat"><div class="lab-stat-num" id="labCountListo" style="color:#2E7D32">-</div><div class="lab-stat-label">🟢 Listo p/envío</div></div>
+        </div>
+        <div class="lab-tabs">
+          <button class="lab-tab active" onclick="filterLab('all',this)">Todos</button>
+          <button class="lab-tab" onclick="filterLab('lab_pendiente',this)">🟡 Pendiente</button>
+          <button class="lab-tab" onclick="filterLab('lab_en_proceso',this)">🔵 En proceso</button>
+          <button class="lab-tab" onclick="filterLab('lab_listo',this)">🟢 Listo p/envío</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Ciudad</th><th>BMI</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="labTable"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ENVIADOS -->
+      <div class="page" id="page-enviados">
+        <h2 style="margin-bottom:16px;color:var(--dark)">📦 Medicamentos enviados</h2>
+        <div style="background:#E8F5E9;border:0.5px solid #A5D6A7;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#2E7D32">✅ Proceso completado.</div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Ciudad</th><th>BMI</th><th>Dirección</th><th>Fecha</th><th>Ver</th></tr></thead>
+          <tbody id="enviadosTable"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- USUARIOS (solo admin) -->
+      <div class="page" id="page-usuarios">
+        <div class="table-header">
+          <h2 class="table-title">👤 Gestión de usuarios</h2>
+          <div class="search-bar">
+            <input class="search-input" id="usrSearch" placeholder="🔍 Buscar usuario..." oninput="filterUsuarios()">
+            <select class="filter-select" id="usrFilterRol" onchange="filterUsuarios()">
+              <option value="">Todos los roles</option>
+              <option value="admin">Admin</option>
+              <option value="medico">Médico</option>
+              <option value="laboratorio">Laboratorio</option>
+            </select>
+            <select class="filter-select" id="usrFilterEstado" onchange="filterUsuarios()">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobado">Aprobado</option>
+              <option value="rechazado">Rechazado</option>
+              <option value="suspendido">Suspendido</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Licencia / Permiso</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="usrTable"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODALES ══════════ -->
+<!-- Modal detalle paciente -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="modalName">—</div><div style="font-size:13px;color:var(--muted);margin-top:3px" id="modalSub">—</div></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<!-- Modal detalle usuario -->
+<div class="modal-overlay" id="usrModalOverlay" onclick="if(event.target===this)closeUsrModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div><div class="modal-title" id="usrModalTitle">—</div><div style="font-size:13px;color:var(--muted);margin-top:3px" id="usrModalSub">—</div></div>
+      <button class="modal-close" onclick="closeUsrModal()">✕</button>
+    </div>
+    <div class="modal-body" id="usrModalBody"></div>
+    <div class="modal-actions" id="usrModalActions"></div>
+  </div>
+</div>
+
+<!-- Modal aprobación médica -->
+<div class="modal-overlay" id="approvalOverlay" onclick="if(event.target===this)cerrarAprobacion()" style="z-index:200">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header" style="background:linear-gradient(135deg,#E1F5EE,#f0faf7);border-bottom-color:#b2dfdb">
+      <div><div class="modal-title" style="color:#0F6E56">✅ Aprobar y prescribir</div><div style="font-size:13px;color:#5a7a72;margin-top:3px" id="approvalPatientSub">—</div></div>
+      <button class="modal-close" onclick="cerrarAprobacion()">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div style="margin-bottom:18px">
+        <label style="font-size:13px;font-weight:500;color:#5a7a72;display:block;margin-bottom:8px">Medicamento GLP-1 prescrito *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="medicamentoGrid">
+          <div class="med-card" onclick="seleccionarMed(this,'Semaglutida 0.25mg (inicio)')"><div class="med-icon">💉</div><div class="med-name">Semaglutida</div><div class="med-dosis">0.25 mg — Inicio</div></div>
+          <div class="med-card" onclick="seleccionarMed(this,'Semaglutida 0.5mg (mantenimiento)')"><div class="med-icon">💉</div><div class="med-name">Semaglutida</div><div class="med-dosis">0.5 mg — Mantenimiento</div></div>
+          <div class="med-card" onclick="seleccionarMed(this,'Semaglutida 1mg (avanzado)')"><div class="med-icon">💉</div><div class="med-name">Semaglutida</div><div class="med-dosis">1 mg — Avanzado</div></div>
+          <div class="med-card" onclick="seleccionarMed(this,'Tirzepatida 2.5mg (inicio)')"><div class="med-icon">🔬</div><div class="med-name">Tirzepatida</div><div class="med-dosis">2.5 mg — Inicio</div></div>
+          <div class="med-card" onclick="seleccionarMed(this,'Tirzepatida 5mg (mantenimiento)')"><div class="med-icon">🔬</div><div class="med-name">Tirzepatida</div><div class="med-dosis">5 mg — Mantenimiento</div></div>
+          <div class="med-card" onclick="seleccionarMed(this,'Tirzepatida 10mg (avanzado)')"><div class="med-icon">🔬</div><div class="med-name">Tirzepatida</div><div class="med-dosis">10 mg — Avanzado</div></div>
+        </div>
+      </div>
+      <div style="margin-bottom:18px">
+        <label style="font-size:13px;font-weight:500;color:#5a7a72;display:block;margin-bottom:6px">Notas para el paciente</label>
+        <textarea id="notasMedico" placeholder="Instrucciones de administración, advertencias..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;border:0.5px solid var(--border);border-radius:8px;outline:none;resize:vertical;min-height:80px"></textarea>
+      </div>
+      <div style="background:#E1F5EE;border:0.5px solid #b2dfdb;border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13px;color:#0F6E56">📧 Se generará un número de orden único y se notificará al paciente.</div>
+      <div style="display:flex;gap:10px">
+        <button class="modal-btn" style="flex:1;background:#f0f5f3;color:var(--muted)" onclick="cerrarAprobacion()">Cancelar</button>
+        <button class="modal-btn" id="aprobarBtn" style="flex:2;background:#ccc;color:#fff;font-weight:600;cursor:not-allowed" disabled onclick="ejecutarAprobacion()">✅ Confirmar prescripción</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal rechazo médico -->
+<div class="modal-overlay" id="rejectOverlay" onclick="if(event.target===this)cerrarRechazo()" style="z-index:200">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header" style="background:#fff5f5;border-bottom-color:#f5c6c6">
+      <div><div class="modal-title" style="color:#c0392b">✗ Rechazar caso</div><div style="font-size:13px;color:#c0392b;opacity:0.8;margin-top:3px" id="rejectPatientSub">—</div></div>
+      <button class="modal-close" onclick="cerrarRechazo()">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:500;color:#5a7a72;display:block;margin-bottom:6px">Motivo del rechazo *</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+          <label class="motivo-opt"><input type="radio" name="motivo" value="Contraindicación médica detectada en su historial clínico."> Contraindicación médica</label>
+          <label class="motivo-opt"><input type="radio" name="motivo" value="Condición de salud preexistente incompatible con el tratamiento GLP-1."> Condición incompatible</label>
+          <label class="motivo-opt"><input type="radio" name="motivo" value="Información médica incompleta o inconsistente en el formulario."> Información incompleta</label>
+          <label class="motivo-opt"><input type="radio" name="motivo" value="Se requiere evaluación presencial adicional."> Requiere evaluación presencial</label>
+          <label class="motivo-opt"><input type="radio" name="motivo" value="otro"> Otro motivo...</label>
+        </div>
+        <textarea id="motivoCustom" placeholder="Escribe el motivo..." style="display:none;width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;border:0.5px solid #f5c6c6;border-radius:8px;outline:none;resize:vertical;min-height:72px"></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="modal-btn" style="flex:1;background:#f0f5f3;color:var(--muted)" onclick="cerrarRechazo()">Cancelar</button>
+        <button class="modal-btn" style="flex:2;background:#c0392b;color:#fff;font-weight:600" onclick="ejecutarRechazo()">✗ Confirmar rechazo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal revertir estado -->
+<div class="modal-overlay" id="revertOverlay" onclick="if(event.target===this)cerrarRevertir()" style="z-index:200">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header" style="background:#FFF3E0;border-bottom-color:#FFE0B2">
+      <div><div class="modal-title" style="color:#E65100">↩ Revertir estado</div><div style="font-size:13px;color:#E65100;opacity:0.8;margin-top:3px" id="revertPatientSub">—</div></div>
+      <button class="modal-close" onclick="cerrarRevertir()">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div style="background:#f7faf9;border:0.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:13px;color:var(--muted)">Estado actual:</span>
+        <span id="revertEstadoActual"></span>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;font-weight:500;color:var(--muted);display:block;margin-bottom:10px">Selecciona el estado destino:</label>
+        <div style="display:flex;flex-direction:column;gap:8px" id="revertOpciones"></div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:13px;font-weight:500;color:var(--muted);display:block;margin-bottom:6px">Motivo de la reversión *</label>
+        <textarea id="revertMotivo" placeholder="Ej: Error en la aprobación..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;border:0.5px solid var(--border);border-radius:8px;outline:none;resize:vertical;min-height:72px"></textarea>
+      </div>
+      <div style="background:#FFF3E0;border:0.5px solid #FFE0B2;border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#E65100">⚠️ Esta acción quedará registrada en auditoría.</div>
+      <div style="display:flex;gap:10px">
+        <button class="modal-btn" style="flex:1;background:#f0f5f3;color:var(--muted)" onclick="cerrarRevertir()">Cancelar</button>
+        <button class="modal-btn" id="revertConfirmBtn" style="flex:2;background:#E65100;color:#fff;font-weight:600" onclick="ejecutarReversion()">↩ Confirmar reversión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal eliminar -->
+<div class="modal-overlay" id="deleteOverlay" onclick="if(event.target===this)cancelarEliminar()" style="z-index:200">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header" style="background:#fff5f5;border-bottom-color:#f5c6c6">
+      <div><div class="modal-title" style="color:#c0392b">🗑 Eliminar paciente</div><div style="font-size:13px;color:#c0392b;opacity:0.8;margin-top:3px">Esta acción es irreversible</div></div>
+      <button class="modal-close" onclick="cancelarEliminar()">✕</button>
+    </div>
+    <div style="padding:24px">
+      <div id="deleteStep1">
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+          <h3 style="font-size:18px;color:var(--dark);margin-bottom:8px">¿Eliminar este paciente?</h3>
+          <p style="font-size:14px;color:var(--muted);line-height:1.6">Estás a punto de eliminar permanentemente a <strong id="deletePatientName">—</strong> y todos sus registros.</p>
+        </div>
+        <div style="background:#fff5f5;border:0.5px solid #f5c6c6;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:#c0392b;line-height:1.6">🚨 Se eliminarán: datos médicos, historial de auditoría y registro completo. Esta acción <strong>no se puede deshacer</strong>.</div>
+        <div style="display:flex;gap:10px">
+          <button class="modal-btn" style="flex:1;background:#f0f5f3;color:var(--muted)" onclick="cancelarEliminar()">Cancelar</button>
+          <button class="modal-btn" style="flex:1;background:#fdecea;color:#c0392b;font-weight:600" onclick="irAPaso2()">Continuar →</button>
+        </div>
+      </div>
+      <div id="deleteStep2" style="display:none">
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-size:48px;margin-bottom:12px">🔐</div>
+          <h3 style="font-size:18px;color:var(--dark);margin-bottom:8px">Confirma tu identidad</h3>
+          <p style="font-size:14px;color:var(--muted)">Escribe <strong style="color:#c0392b;font-family:monospace">ELIMINAR</strong> para confirmar:</p>
+        </div>
+        <input type="text" id="deleteConfirmInput" placeholder="Escribe ELIMINAR" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;border:0.5px solid #f5c6c6;border-radius:8px;outline:none;text-align:center;letter-spacing:2px;margin-bottom:16px" oninput="checkDeleteInput()">
+        <div style="display:flex;gap:10px">
+          <button class="modal-btn" style="flex:1;background:#f0f5f3;color:var(--muted)" onclick="volverAPaso1()">← Volver</button>
+          <button class="modal-btn" id="deleteConfirmBtn" style="flex:1;background:#ccc;color:#fff;font-weight:600;cursor:not-allowed" disabled onclick="ejecutarEliminar()">🗑 Eliminar definitivamente</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px">Esta acción quedará registrada</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wwskicwdqbufrpuarmzk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_DosZhDbnOECHthVGFlMXTQ_cqUYLLFq';
+const MAKE_WEBHOOK = 'https://hook.us2.make.com/q2djoj1p4lkshf6bwjzd4xxhpeagbo4q';
+
+let currentUser = null;
+let allData = [];
+let allUsuarios = [];
+let currentLabFilter = 'all';
+
+// ── Helpers Supabase ─────────────────────────
+const SB_HEADERS = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Prefer':'return=minimal' };
+const SB_GET = { 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY };
+
+async function sbGet(table, query='') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: SB_GET });
+  return r.json();
+}
+async function sbPatch(table, filter, body) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, { method:'PATCH', headers:SB_HEADERS, body:JSON.stringify(body) });
+}
+async function sbPost(table, body) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method:'POST', headers:SB_HEADERS, body:JSON.stringify(body) });
+}
+async function sbDelete(table, filter) {
+  return fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, { method:'DELETE', headers:SB_HEADERS });
+}
+
+// ── Auth tabs ────────────────────────────────
+let selectedRol = null;
+function showAuthTab(tab, el) {
+  ['login','registro','recuperar'].forEach(t => {
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectRol(rol, el) {
+  selectedRol = rol;
+  document.querySelectorAll('.rol-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('regFormBase').style.display = 'block';
+  document.getElementById('camposMedico').style.display = rol==='medico'?'block':'none';
+  document.getElementById('camposLab').style.display = rol==='laboratorio'?'block':'none';
+}
+
+function checkPassword() {
+  const p = document.getElementById('regPassword').value;
+  const bar = document.getElementById('passStrength');
+  let strength = 0;
+  if (p.length >= 8) strength++;
+  if (/[A-Z]/.test(p)) strength++;
+  if (/[0-9]/.test(p)) strength++;
+  if (/[^A-Za-z0-9]/.test(p)) strength++;
+  const colors = ['#fdecea','#FFF3E0','#E3F2FD','#E1F5EE'];
+  const fills  = ['25%','50%','75%','100%'];
+  bar.style.background = `linear-gradient(to right, ${['#c0392b','#E65100','#1565C0','#0F6E56'][strength-1]||'#f0f0f0'} ${fills[strength-1]||'0%'}, #f0f0f0 ${fills[strength-1]||'0%'})`;
+}
+
+async function checkUsername() {
+  const u = document.getElementById('regUsername').value.trim();
+  if (!u || u.length < 3) return;
+  const data = await sbGet('admin_usuarios', `username=eq.${u}&select=id`);
+  if (Array.isArray(data) && data.length > 0) {
+    document.getElementById('regError').textContent = '⚠️ Ese nombre de usuario ya está en uso.';
+    document.getElementById('regError').style.display = 'block';
+  } else {
+    document.getElementById('regError').style.display = 'none';
+  }
+}
+
+// ── LOGIN ────────────────────────────────────
+async function doLogin() {
+  const input = document.getElementById('loginUser').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginError');
+  err.style.display = 'none';
+
+  if (!input || !pass) { err.textContent='Ingresa usuario y contraseña'; err.style.display='block'; return; }
+
+  try {
+    // Buscar por username o email
+    const data = await sbGet('admin_usuarios',
+      `select=*&or=(username.eq.${encodeURIComponent(input)},email.eq.${encodeURIComponent(input)})`
+    );
+
+    if (!Array.isArray(data) || data.length === 0) {
+      err.textContent = 'Usuario o contraseña incorrectos'; err.style.display='block'; return;
+    }
+
+    const user = data[0];
+
+    // Verificar contraseña (texto plano — en producción usar hash)
+    if (user.password_hash !== pass) {
+      err.textContent = 'Usuario o contraseña incorrectos'; err.style.display='block'; return;
+    }
+
+    // Verificar estado
+    if (user.estado === 'pendiente') {
+      document.getElementById('screenLogin').style.display = 'none';
+      document.getElementById('screenPendiente').style.display = 'flex';
+      document.getElementById('pendNombre').textContent = user.nombre_completo;
+      document.getElementById('pendRol').textContent = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
+      return;
+    }
+    if (user.estado === 'rechazado') {
+      err.textContent = '❌ Tu solicitud de acceso fue rechazada. Contacta al administrador.'; err.style.display='block'; return;
+    }
+    if (user.estado === 'suspendido') {
+      err.textContent = '🚫 Tu cuenta está suspendida. Contacta al administrador.'; err.style.display='block'; return;
+    }
+
+    // Login exitoso
+    currentUser = user;
+    iniciarSesion(user);
+
+  } catch(e) {
+    err.textContent = 'Error de conexión: ' + e.message; err.style.display='block';
+  }
+}
+
+function iniciarSesion(user) {
+  document.getElementById('screenLogin').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('topbarUser').textContent = user.nombre_completo;
+  const rb = document.getElementById('roleBadge');
+  rb.textContent = user.rol==='admin'?'Admin':user.rol==='laboratorio'?'Laboratorio':'Médico';
+  rb.className = 'role-badge badge-' + (user.rol==='laboratorio'?'lab':user.rol);
+  applyRoleSidebar(user.rol);
+  loadData();
+  if (user.rol === 'admin') loadUsuarios();
+}
+
+function applyRoleSidebar(role) {
+  // Médico: solo revisión médica
+  if (role === 'medico') {
+    ['nav-dashboard','nav-pacientes','nav-laboratorio','nav-enviados','nav-usuarios'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    activarPagina('revision', document.getElementById('nav-revision'));
+    return;
+  }
+  // Laboratorio: lab + enviados
+  if (role === 'laboratorio') {
+    ['nav-dashboard','nav-pacientes','nav-revision','nav-usuarios'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    activarPagina('laboratorio', document.getElementById('nav-laboratorio'));
+    return;
+  }
+  // Admin: todo visible
+  document.getElementById('nav-usuarios').style.display = 'flex';
+  activarPagina('dashboard', document.getElementById('nav-dashboard'));
+}
+
+function activarPagina(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+}
+
+function doLogout() {
+  currentUser = null; allData = []; allUsuarios = [];
+  document.getElementById('app').classList.remove('show');
+  // Reset sidebar visibility
+  ['nav-dashboard','nav-pacientes','nav-revision','nav-laboratorio','nav-enviados','nav-usuarios'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display=''; el.classList.remove('active'); }
+  });
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('screenLogin').style.display = 'flex';
+  activarPagina('dashboard', null);
+}
+
+function volverLogin() {
+  document.getElementById('screenPendiente').style.display = 'none';
+  document.getElementById('screenLogin').style.display = 'flex';
+}
+
+// ── REGISTRO ─────────────────────────────────
+async function doRegistro() {
+  const err = document.getElementById('regError');
+  const suc = document.getElementById('regSuccess');
+  err.style.display = 'none'; suc.style.display = 'none';
+
+  if (!selectedRol) { err.textContent='Selecciona tu tipo de acceso'; err.style.display='block'; return; }
+
+  const nombre   = document.getElementById('regNombre').value.trim();
+  const apellido = document.getElementById('regApellido').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const emailRec = document.getElementById('regEmailRec').value.trim();
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const terminos = document.getElementById('regTerminos').checked;
+
+  if (!nombre||!apellido||!email||!emailRec||!username||!password) {
+    err.textContent='Completa todos los campos obligatorios'; err.style.display='block'; return;
+  }
+  if (password.length < 8) { err.textContent='La contraseña debe tener al menos 8 caracteres'; err.style.display='block'; return; }
+  if (!terminos) { err.textContent='Debes aceptar los términos'; err.style.display='block'; return; }
+
+  // Validaciones específicas por rol
+  if (selectedRol === 'medico') {
+    const licencia = document.getElementById('regLicencia').value.trim();
+    const espec    = document.getElementById('regEspecialidad').value;
+    if (!licencia||!espec) { err.textContent='Ingresa tu número de licencia médica y especialidad'; err.style.display='block'; return; }
+  }
+  if (selectedRol === 'laboratorio') {
+    const permiso  = document.getElementById('regPermiso').value.trim();
+    const nomLab   = document.getElementById('regNombreLab').value.trim();
+    if (!permiso||!nomLab) { err.textContent='Ingresa el nombre y permiso de funcionamiento del laboratorio'; err.style.display='block'; return; }
+  }
+
+  const btn = document.getElementById('regBtn');
+  btn.textContent = '⏳ Enviando solicitud...'; btn.disabled = true;
+
+  try {
+    const payload = {
+      nombre_completo: `${nombre} ${apellido}`,
+      email, username,
+      password_hash: password,
+      rol: selectedRol,
+      telefono: document.getElementById('regTelefono').value.trim()||null,
+      email_recuperacion: emailRec,
+      estado: 'pendiente',
+      // Campos médico
+      numero_licencia: selectedRol==='medico' ? document.getElementById('regLicencia').value.trim() : null,
+      especialidad:    selectedRol==='medico' ? document.getElementById('regEspecialidad').value : null,
+      // Campos laboratorio
+      numero_permiso:    selectedRol==='laboratorio' ? document.getElementById('regPermiso').value.trim() : null,
+      nombre_laboratorio: selectedRol==='laboratorio' ? document.getElementById('regNombreLab').value.trim() : null,
+    };
+
+    const res = await sbPost('admin_usuarios', payload);
+
+    if (res.ok || res.status === 201) {
+      // Notificar al admin principal via Make.com
+      await notificarMake({
+        evento: 'NUEVO_USUARIO_PENDIENTE',
+        nombre_completo: payload.nombre_completo,
+        email: payload.email,
+        username: payload.username,
+        rol: payload.rol,
+        numero_licencia: payload.numero_licencia||'',
+        numero_permiso: payload.numero_permiso||'',
+        nombre_laboratorio: payload.nombre_laboratorio||'',
+        fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
+        mensaje_admin: `Nueva solicitud de acceso: ${payload.nombre_completo} (${payload.rol}). Usuario: ${payload.username}. Por favor revisa y aprueba en el panel de administración.`
+      });
+
+      suc.textContent = '✅ Solicitud enviada correctamente. El administrador revisará tu solicitud y recibirás una notificación en tu email.';
+      suc.style.display = 'block';
+      btn.textContent = '✅ Solicitud enviada';
+    } else {
+      const e = await res.json();
+      if (e.code === '23505') {
+        err.textContent = '❌ El email o nombre de usuario ya están registrados.';
+      } else {
+        err.textContent = 'Error: ' + (e.message||'Intenta nuevamente');
+      }
+      err.style.display = 'block';
+      btn.textContent = 'Enviar solicitud de registro'; btn.disabled = false;
+    }
+  } catch(e) {
+    err.textContent = 'Error de conexión: ' + e.message; err.style.display='block';
+    btn.textContent = 'Enviar solicitud de registro'; btn.disabled = false;
+  }
+}
+
+// ── RECUPERAR CONTRASEÑA ─────────────────────
+async function doRecuperar() {
+  const input = document.getElementById('recInput').value.trim();
+  const err   = document.getElementById('recError');
+  const suc   = document.getElementById('recSuccess');
+  err.style.display='none'; suc.style.display='none';
+
+  if (!input) { err.textContent='Ingresa tu usuario o email de recuperación'; err.style.display='block'; return; }
+
+  try {
+    const data = await sbGet('admin_usuarios',
+      `select=id,nombre_completo,email,email_recuperacion,username&or=(username.eq.${encodeURIComponent(input)},email_recuperacion.eq.${encodeURIComponent(input)},email.eq.${encodeURIComponent(input)})`
+    );
+
+    if (!Array.isArray(data) || data.length === 0) {
+      err.textContent='No encontramos ninguna cuenta con ese dato. Contacta al administrador.'; err.style.display='block'; return;
+    }
+
+    const user = data[0];
+    // Generar token temporal
+    const token = Math.random().toString(36).substring(2,10).toUpperCase();
+    const expiry = new Date(Date.now() + 3600000).toISOString(); // 1 hora
+
+    await sbPatch('admin_usuarios', `id=eq.${user.id}`, { token_recuperacion: token, token_expiry: expiry });
+
+    // Notificar via Make.com
+    await notificarMake({
+      evento: 'RECUPERAR_PASSWORD',
+      nombre_completo: user.nombre_completo,
+      email: user.email_recuperacion || user.email,
+      username: user.username,
+      token_recuperacion: token,
+      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
+      mensaje: `Tu código de recuperación temporal es: ${token}. Válido por 1 hora. Contacta al administrador con este código para que restablezca tu contraseña.`
+    });
+
+    suc.textContent = `✅ Instrucciones enviadas al email de recuperación. Si no recibes el correo en 5 minutos, contacta al administrador con tu usuario: ${user.username}`;
+    suc.style.display = 'block';
+
+  } catch(e) {
+    err.textContent='Error: '+e.message; err.style.display='block';
+  }
+}
+
+// ── GESTIÓN DE USUARIOS (Admin) ──────────────
+async function loadUsuarios() {
+  try {
+    allUsuarios = await sbGet('admin_usuarios', 'select=*&order=created_at.desc');
+    renderUsuarios(allUsuarios);
+    const pendientes = allUsuarios.filter(u => u.estado==='pendiente' && !u.es_admin_principal).length;
+    document.getElementById('navUsuarios').textContent = pendientes || '';
+    document.getElementById('navUsuarios').style.display = pendientes > 0 ? 'inline-flex' : 'inline-flex';
+  } catch(e) { console.error('Error cargando usuarios:', e); }
+}
+
+function renderUsuarios(data) {
+  const tbody = document.getElementById('usrTable');
+  const filtrados = data.filter(u => !u.es_admin_principal);
+  if (!filtrados.length) { tbody.innerHTML='<tr><td colspan="6" class="empty-state"><div class="empty-icon">👤</div>Sin usuarios registrados</td></tr>'; return; }
+  tbody.innerHTML = filtrados.map(u => `
+    <tr onclick="openUsrModal(${u.id})">
+      <td><strong>${u.nombre_completo||'—'}</strong><br><span style="font-size:11px;color:var(--muted)">${u.email||''}</span></td>
+      <td style="font-family:monospace;font-size:12px">${u.username||'—'}</td>
+      <td>${rolBadge(u.rol)}</td>
+      <td style="font-size:12px;color:var(--muted)">${u.numero_licencia||u.numero_permiso||'—'}</td>
+      <td>${usrEstadoBadge(u.estado)}</td>
+      <td onclick="event.stopPropagation()">${usrActionBtns(u)}</td>
+    </tr>`).join('');
+}
+
+function filterUsuarios() {
+  const q   = document.getElementById('usrSearch').value.toLowerCase();
+  const rol = document.getElementById('usrFilterRol').value;
+  const est = document.getElementById('usrFilterEstado').value;
+  const filtered = allUsuarios.filter(u => {
+    if (u.es_admin_principal) return false;
+    const mq = !q || (u.nombre_completo||'').toLowerCase().includes(q) || (u.username||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
+    const mr = !rol || u.rol === rol;
+    const me = !est || u.estado === est;
+    return mq && mr && me;
+  });
+  renderUsuarios(filtered);
+}
+
+function rolBadge(rol) {
+  const cfg = {admin:{bg:'#E1F5EE',c:'#0F6E56',l:'👑 Admin'},medico:{bg:'#EDE7F6',c:'#4527A0',l:'👨‍⚕️ Médico'},laboratorio:{bg:'#FFF3E0',c:'#E65100',l:'🔬 Laboratorio'}};
+  const r = cfg[rol]||{bg:'#f0f0f0',c:'#888',l:rol};
+  return `<span class="status-badge" style="background:${r.bg};color:${r.c}">${r.l}</span>`;
+}
+
+function usrEstadoBadge(est) {
+  const cfg = {pendiente:{cls:'usr-pendiente',l:'⏳ Pendiente'},aprobado:{cls:'usr-aprobado',l:'✅ Aprobado'},rechazado:{cls:'usr-rechazado',l:'✗ Rechazado'},suspendido:{cls:'usr-suspendido',l:'🚫 Suspendido'}};
+  const c = cfg[est]||cfg.pendiente;
+  return `<span class="status-badge ${c.cls}">${c.l}</span>`;
+}
+
+function usrActionBtns(u) {
+  let btns = `<button class="action-btn btn-ver" onclick="event.stopPropagation();openUsrModal(${u.id})">👁 Ver</button> `;
+  if (u.estado === 'pendiente') {
+    btns += `<button class="action-btn" style="background:#E1F5EE;color:#0F6E56;font-weight:600" onclick="event.stopPropagation();aprobarUsuario(${u.id})">✅ Aprobar</button> `;
+    btns += `<button class="action-btn btn-rechazar" onclick="event.stopPropagation();rechazarUsuario(${u.id})">✗ Rechazar</button>`;
+  }
+  if (u.estado === 'aprobado') {
+    btns += `<button class="action-btn" style="background:#f0f0f0;color:#888" onclick="event.stopPropagation();suspenderUsuario(${u.id})">🚫 Suspender</button>`;
+  }
+  if (u.estado === 'suspendido' || u.estado === 'rechazado') {
+    btns += `<button class="action-btn" style="background:#E1F5EE;color:#0F6E56" onclick="event.stopPropagation();aprobarUsuario(${u.id})">🔓 Reactivar</button>`;
+  }
+  return btns;
+}
+
+async function aprobarUsuario(id) {
+  const u = allUsuarios.find(x => x.id === id);
+  if (!u) return;
+  const res = await sbPatch('admin_usuarios', `id=eq.${id}`, { estado:'aprobado' });
+  if (res.ok) {
+    // Notificar al usuario
+    await notificarMake({
+      evento: 'USUARIO_APROBADO',
+      nombre_completo: u.nombre_completo,
+      email: u.email,
+      username: u.username,
+      rol: u.rol,
+      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
+      mensaje: `¡Tu solicitud de acceso ha sido aprobada! Ya puedes ingresar al panel de Siscormed con tu usuario: ${u.username}`
+    });
+    await loadUsuarios();
+    closeUsrModal();
+    showToast(`✅ Usuario ${u.nombre_completo} aprobado`, 'success');
+  }
+}
+
+async function rechazarUsuario(id) {
+  const u = allUsuarios.find(x => x.id === id);
+  if (!u) return;
+  const motivo = prompt('Motivo del rechazo (opcional):') || 'No cumple con los requisitos establecidos.';
+  const res = await sbPatch('admin_usuarios', `id=eq.${id}`, { estado:'rechazado' });
+  if (res.ok) {
+    await notificarMake({
+      evento: 'USUARIO_RECHAZADO',
+      nombre_completo: u.nombre_completo,
+      email: u.email,
+      username: u.username,
+      motivo,
+      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
+      mensaje: `Tu solicitud de acceso al panel Siscormed no fue aprobada. Motivo: ${motivo}. Si crees que es un error, contacta al administrador.`
+    });
+    await loadUsuarios();
+    closeUsrModal();
+    showToast(`✗ Usuario ${u.nombre_completo} rechazado`, 'error');
+  }
+}
+
+async function suspenderUsuario(id) {
+  const u = allUsuarios.find(x => x.id === id);
+  if (!u) return;
+  if (!confirm(`¿Suspender la cuenta de ${u.nombre_completo}?`)) return;
+  const res = await sbPatch('admin_usuarios', `id=eq.${id}`, { estado:'suspendido' });
+  if (res.ok) { await loadUsuarios(); showToast(`🚫 Usuario ${u.nombre_completo} suspendido`, 'error'); }
+}
+
+async function resetPasswordAdmin(id) {
+  const u = allUsuarios.find(x => x.id === id);
+  if (!u) return;
+  const newPass = prompt(`Nueva contraseña para ${u.nombre_completo}:`);
+  if (!newPass || newPass.length < 8) { showToast('⚠️ La contraseña debe tener al menos 8 caracteres', 'error'); return; }
+  const res = await sbPatch('admin_usuarios', `id=eq.${id}`, { password_hash: newPass, token_recuperacion: null, token_expiry: null });
+  if (res.ok) {
+    await notificarMake({
+      evento: 'PASSWORD_RESETEADO',
+      nombre_completo: u.nombre_completo,
+      email: u.email_recuperacion || u.email,
+      username: u.username,
+      nueva_password: newPass,
+      admin: currentUser.nombre_completo,
+      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
+      mensaje: `El administrador ha restablecido tu contraseña. Tu nueva contraseña temporal es: ${newPass}. Por favor cámbiala después de ingresar.`
+    });
+    await loadUsuarios();
+    closeUsrModal();
+    showToast(`🔑 Contraseña restablecida para ${u.nombre_completo}`, 'success');
+  }
+}
+
+function openUsrModal(id) {
+  const u = allUsuarios.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('usrModalTitle').textContent = u.nombre_completo || '—';
+  document.getElementById('usrModalSub').innerHTML = `${rolBadge(u.rol)} &nbsp; ${usrEstadoBadge(u.estado)}`;
+  document.getElementById('usrModalBody').innerHTML = `
+    <div class="detail-section">
+      <h4>Datos de acceso</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">Usuario</div><div class="di-val" style="font-family:monospace">${u.username||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Email</div><div class="di-val">${u.email||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Email recuperación</div><div class="di-val">${u.email_recuperacion||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Teléfono</div><div class="di-val">${u.telefono||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Registro</div><div class="di-val">${fmtDate(u.created_at)}</div></div>
+        <div class="detail-item"><div class="di-label">Estado</div><div class="di-val">${usrEstadoBadge(u.estado)}</div></div>
+      </div>
+    </div>
+    ${u.rol === 'medico' ? `
+    <div class="detail-section">
+      <h4>Datos médicos</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">Licencia médica</div><div class="di-val">${u.numero_licencia||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Especialidad</div><div class="di-val">${u.especialidad||'—'}</div></div>
+      </div>
+    </div>` : ''}
+    ${u.rol === 'laboratorio' ? `
+    <div class="detail-section">
+      <h4>Datos del laboratorio</h4>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">Nombre del lab</div><div class="di-val">${u.nombre_laboratorio||'—'}</div></div>
+        <div class="detail-item"><div class="di-label">Permiso ARCSA</div><div class="di-val">${u.numero_permiso||'—'}</div></div>
+      </div>
+    </div>` : ''}
+    ${u.token_recuperacion ? `
+    <div style="background:#FFF3E0;border:0.5px solid #FFE0B2;border-radius:10px;padding:12px 14px;font-size:13px;color:#E65100">
+      🔑 Token de recuperación activo: <strong style="font-family:monospace">${u.token_recuperacion}</strong>
+    </div>` : ''}`;
+
+  const actions = document.getElementById('usrModalActions');
+  actions.innerHTML = '';
+  if (u.estado === 'pendiente') {
+    actions.innerHTML += `<button class="modal-btn" style="background:#E1F5EE;color:#0F6E56;font-weight:600" onclick="aprobarUsuario(${u.id})">✅ Aprobar acceso</button>`;
+    actions.innerHTML += `<button class="modal-btn" style="background:#fdecea;color:#c0392b" onclick="rechazarUsuario(${u.id})">✗ Rechazar</button>`;
+  }
+  if (u.estado === 'aprobado') {
+    actions.innerHTML += `<button class="modal-btn" style="background:#f0f0f0;color:#888" onclick="suspenderUsuario(${u.id})">🚫 Suspender</button>`;
+  }
+  if (u.estado === 'suspendido' || u.estado === 'rechazado') {
+    actions.innerHTML += `<button class="modal-btn" style="background:#E1F5EE;color:#0F6E56" onclick="aprobarUsuario(${u.id})">🔓 Reactivar</button>`;
+  }
+  actions.innerHTML += `<button class="modal-btn" style="background:#EDE7F6;color:#4527A0;font-weight:600" onclick="resetPasswordAdmin(${u.id})">🔑 Restablecer contraseña</button>`;
+  actions.innerHTML += `<button class="modal-btn" style="background:#f0f5f3;color:var(--muted)" onclick="closeUsrModal()">Cerrar</button>`;
+
+  document.getElementById('usrModalOverlay').classList.add('show');
+}
+
+function closeUsrModal() { document.getElementById('usrModalOverlay').classList.remove('show'); }
+
+// ── DATOS PACIENTES ──────────────────────────
+async function loadData() {
+  try {
+    const res = await sbGet('pacientes', 'select=*&order=created_at.desc');
+    allData = res;
+    renderAll();
+  } catch(e) { console.error(e); }
+}
+
+function norm(s) {
+  if (!s || s==='pendiente') return 'en_revision_medica';
+  if (s==='en_laboratorio') return 'lab_pendiente';
+  return s;
+}
+
+function statusBadge(s) {
+  const n = norm(s);
+  const cfg = {
+    'en_revision_medica':{cls:'status-revision',lbl:'🩺 Revisión médica'},
+    'aprobado_medico':{cls:'status-aprobado-med',lbl:'✅ Aprobado p/médico'},
+    'lab_pendiente':{cls:'status-lab-pendiente',lbl:'🟡 Lab: Pendiente'},
+    'lab_en_proceso':{cls:'status-lab-proceso',lbl:'🔵 Lab: En proceso'},
+    'lab_listo':{cls:'status-lab-listo',lbl:'🟢 Lab: Listo'},
+    'enviado':{cls:'status-enviado',lbl:'📦 Enviado'},
+    'rechazado':{cls:'status-rechazado',lbl:'✗ Rechazado'}
+  };
+  const c = cfg[n]||{cls:'status-revision',lbl:n};
+  return `<span class="status-badge ${c.cls}">${c.lbl}</span>`;
+}
+
+function bmiChip(bmi) {
+  if (!bmi) return '<span style="color:var(--muted)">N/A</span>';
+  const b = parseFloat(bmi);
+  let cls,lbl;
+  if (b<18.5){cls='bmi-bajo';lbl='Bajo peso';}
+  else if(b<25){cls='bmi-normal';lbl='Normal';}
+  else if(b<30){cls='bmi-sobre';lbl='Sobrepeso';}
+  else{cls='bmi-obeso';lbl='Obesidad';}
+  return `<span class="bmi-chip ${cls}">${b.toFixed(1)} · ${lbl}</span>`;
+}
+
+function compatChip(pct, label) {
+  if (pct==null) return '<span style="color:var(--muted);font-size:12px">N/A</span>';
+  const color=pct>=80?'#0F6E56':pct>=65?'#1D9E75':pct>=45?'#E65100':'#c0392b';
+  const circ=2*Math.PI*14;
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div style="position:relative;width:36px;height:36px;flex-shrink:0">
+      <svg width="36" height="36" viewBox="0 0 36 36" style="transform:rotate(-90deg)">
+        <circle cx="18" cy="18" r="14" fill="none" stroke="#f0f0f0" stroke-width="4"/>
+        <circle cx="18" cy="18" r="14" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-pct/100)}"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${color}">${pct}%</div>
+    </div>
+    <div><div style="font-size:12px;font-weight:600;color:${color}">${pct}%</div>
+    <div style="font-size:10px;color:var(--muted);max-width:100px;line-height:1.2">${label||''}</div></div></div>`;
+}
+
+function fmtDate(d) { if(!d) return '—'; return new Date(d).toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDateTime(d) { if(!d) return '—'; const dt=new Date(d); return dt.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})+' · '+dt.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}); }
+function calcDuration(from,to) { if(!from||!to) return null; const d=new Date(to)-new Date(from); const m=Math.floor(d/60000); const h=Math.floor(m/60); const dy=Math.floor(h/24); if(dy>0) return `${dy}d ${h%24}h`; if(h>0) return `${h}h ${m%60}m`; if(m>0) return `${m}m`; return '<1m'; }
+
+function actionBtns(p) {
+  const role=currentUser?.rol; const estado=norm(p.estado); let btns=`<button class="action-btn btn-ver" onclick="event.stopPropagation();openModal(${p.id})">👁 Ver</button> `;
+  if((role==='admin'||role==='medico')&&estado==='en_revision_medica'){btns+=`<button class="action-btn" style="background:#E1F5EE;color:#0F6E56;font-weight:600" onclick="event.stopPropagation();abrirModalAprobacion(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}')">✅ Aprobar</button> `;btns+=`<button class="action-btn btn-rechazar" onclick="event.stopPropagation();abrirModalRechazo(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}')">✗ Rechazar</button>`;}
+  if((role==='admin'||role==='laboratorio')&&estado==='aprobado_medico'){btns+=`<button class="action-btn" style="background:#FFF9C4;color:#E65100;font-weight:600" onclick="event.stopPropagation();updateStatus(${p.id},'lab_pendiente')">🟡 Recibir</button> `;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_pendiente'){btns+=`<button class="action-btn" style="background:#E3F2FD;color:#1565C0;font-weight:600" onclick="event.stopPropagation();updateStatus(${p.id},'lab_en_proceso')">🔵 Iniciar</button> `;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_en_proceso'){btns+=`<button class="action-btn" style="background:#E8F5E9;color:#2E7D32;font-weight:600" onclick="event.stopPropagation();updateStatus(${p.id},'lab_listo')">🟢 Listo</button> `;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_listo'){btns+=`<button class="action-btn" style="background:#0F6E56;color:#fff;font-weight:600" onclick="event.stopPropagation();updateStatus(${p.id},'enviado')">📦 Enviar</button> `;}
+  return btns;
+}
+
+function isLabEstado(s){return['lab_pendiente','lab_en_proceso','lab_listo','en_laboratorio'].includes(s);}
+
+function renderAll() {
+  updateStats(); renderRecent(); renderAllTable(allData); renderRevision(); renderLab(currentLabFilter); renderEnviados();
+  document.getElementById('navCount').textContent=allData.length;
+  document.getElementById('navRevision').textContent=allData.filter(p=>['en_revision_medica','pendiente'].includes(p.estado||'')).length;
+  const labStates=['aprobado_medico','lab_pendiente','lab_en_proceso','lab_listo','en_laboratorio'];
+  document.getElementById('navLab').textContent=allData.filter(p=>labStates.includes(p.estado||'')).length;
+  document.getElementById('navEnviados').textContent=allData.filter(p=>p.estado==='enviado').length;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent=allData.length;
+  document.getElementById('statRevision').textContent=allData.filter(p=>['en_revision_medica','pendiente'].includes(p.estado||'')).length;
+  const labStates=['aprobado_medico','lab_pendiente','lab_en_proceso','lab_listo'];
+  document.getElementById('statLab').textContent=allData.filter(p=>labStates.includes(p.estado||'')).length;
+  document.getElementById('statEnviados').textContent=allData.filter(p=>p.estado==='enviado').length;
+}
+
+function renderRecent(){const tbody=document.getElementById('recentTable');const r=allData.slice(0,10);if(!r.length){tbody.innerHTML='<tr><td colspan="5" class="loading">Sin registros</td></tr>';return;}tbody.innerHTML=r.map(p=>`<tr onclick="openModal(${p.id})"><td><strong>${p.nombre||p.nombre_completo||'—'}</strong></td><td style="color:var(--muted)">${fmtDate(p.created_at)}</td><td>${bmiChip(p.bmi)}</td><td>${statusBadge(p.estado)}</td><td onclick="event.stopPropagation()">${actionBtns(p)}</td></tr>`).join('');}
+function renderAllTable(data){const tbody=document.getElementById('allTable');if(!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state"><div class="empty-icon">📋</div>Sin registros</td></tr>';return;}tbody.innerHTML=data.map(p=>`<tr onclick="openModal(${p.id})"><td><strong>${p.nombre||p.nombre_completo||'—'}</strong></td><td style="color:var(--muted);font-size:12px">${p.email||'—'}</td><td>${bmiChip(p.bmi)}</td><td>${statusBadge(p.estado)}</td><td onclick="event.stopPropagation()">${actionBtns(p)}</td></tr>`).join('');}
+function filterTable(){const q=document.getElementById('searchInput').value.toLowerCase();const st=document.getElementById('filterStatus').value;renderAllTable(allData.filter(p=>{const mq=!q||(p.nombre||p.nombre_completo||'').toLowerCase().includes(q)||(p.email||'').toLowerCase().includes(q);const ms=!st||norm(p.estado)===st||p.estado===st;return mq&&ms;}));}
+
+function renderRevision(){const tbody=document.getElementById('revisionTable');const data=allData.filter(p=>['en_revision_medica','pendiente'].includes(p.estado||''));if(!data.length){tbody.innerHTML='<tr><td colspan="6" class="empty-state"><div class="empty-icon">✅</div>Sin casos en revisión</td></tr>';return;}tbody.innerHTML=data.map(p=>`<tr onclick="openModal(${p.id})"><td><strong>${p.nombre||p.nombre_completo||'—'}</strong></td><td style="color:var(--muted);font-size:12px">${p.email||'—'}</td><td>${bmiChip(p.bmi)}</td><td>${compatChip(p.compatibilidad_pct,p.compatibilidad_label)}</td><td style="color:var(--muted);font-size:12px">${fmtDate(p.created_at)}</td><td onclick="event.stopPropagation()">${actionBtns(p)}</td></tr>`).join('');}
+
+let currentLabFilter2='all';
+function filterLab(filter,el){currentLabFilter2=filter;document.querySelectorAll('.lab-tab').forEach(t=>t.classList.remove('active'));if(el)el.classList.add('active');renderLab(filter);}
+function renderLab(filter){const labStates=['aprobado_medico','lab_pendiente','lab_en_proceso','lab_listo','en_laboratorio'];let data=allData.filter(p=>labStates.includes(p.estado||''));if(filter&&filter!=='all')data=data.filter(p=>{const n=norm(p.estado);return n===filter||(filter==='lab_pendiente'&&p.estado==='aprobado_medico');});document.getElementById('labCountPend').textContent=allData.filter(p=>['lab_pendiente','aprobado_medico'].includes(p.estado||'')).length;document.getElementById('labCountProceso').textContent=allData.filter(p=>p.estado==='lab_en_proceso').length;document.getElementById('labCountListo').textContent=allData.filter(p=>p.estado==='lab_listo').length;const tbody=document.getElementById('labTable');if(!data.length){tbody.innerHTML='<tr><td colspan="5" class="empty-state"><div class="empty-icon">🔬</div>Sin registros en laboratorio</td></tr>';return;}tbody.innerHTML=data.map(p=>`<tr onclick="openModal(${p.id})"><td><strong>${p.nombre||p.nombre_completo||'—'}</strong><br><span style="font-size:11px;color:var(--muted)">${p.email||''}</span></td><td style="color:var(--muted)">${p.ciudad||'—'}</td><td>${bmiChip(p.bmi)}</td><td>${statusBadge(p.estado)}</td><td onclick="event.stopPropagation()">${actionBtns(p)}</td></tr>`).join('');}
+function renderEnviados(){const tbody=document.getElementById('enviadosTable');const data=allData.filter(p=>p.estado==='enviado');if(!data.length){tbody.innerHTML='<tr><td colspan="6" class="empty-state"><div class="empty-icon">📦</div>Sin envíos aún</td></tr>';return;}tbody.innerHTML=data.map(p=>`<tr onclick="openModal(${p.id})"><td><strong>${p.nombre||p.nombre_completo||'—'}</strong><br><span style="font-size:11px;color:var(--muted)">${p.email||''}</span></td><td style="color:var(--muted)">${p.ciudad||'—'}</td><td>${bmiChip(p.bmi)}</td><td style="font-size:12px;color:var(--muted)">${p.direccion||'—'}</td><td style="font-size:12px;color:var(--muted)">${fmtDate(p.updated_at||p.created_at)}</td><td onclick="event.stopPropagation()"><button class="action-btn btn-ver" onclick="event.stopPropagation();openModal(${p.id})">👁 Ver</button></td></tr>`).join('');}
+
+// ── updateStatus ─────────────────────────────
+async function updateStatus(id,newStatus){
+  try{
+    const paciente=allData.find(x=>x.id===id);
+    const estadoAnterior=paciente?.estado||'en_revision_medica';
+    const res=await sbPatch('pacientes',`id=eq.${id}`,{estado:newStatus});
+    if(!res.ok){alert('Error al actualizar: '+res.status);return;}
+    try{await sbPost('pacientes_auditoria',{paciente_id:id,estado_anterior:estadoAnterior,estado_nuevo:newStatus,usuario:currentUser.username,rol:currentUser.rol});}catch(e){}
+    const nombre=paciente?.nombre||paciente?.nombre_completo||'';
+    const fecha=new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'});
+    if(newStatus==='lab_pendiente'){await notificarMake({evento:'LAB_CASO_RECIBIDO',numero_orden:paciente?.numero_orden||'',paciente_nombre:nombre,medicamento:paciente?.medicamento_aprobado||'',ciudad:paciente?.ciudad||'',fecha,mensaje_lab:`Nueva orden: ${paciente?.numero_orden||''}. Paciente: ${nombre}. Medicamento: ${paciente?.medicamento_aprobado||''}.`});}
+    if(newStatus==='enviado'){await notificarMake({evento:'MEDICAMENTO_ENVIADO',numero_orden:paciente?.numero_orden||'',paciente_nombre:nombre,paciente_email:paciente?.email||'',medicamento:paciente?.medicamento_aprobado||'',ciudad:paciente?.ciudad||'',fecha,mensaje_paciente:`Estimado/a ${nombre}, su medicamento ha sido enviado. Orden: ${paciente?.numero_orden||''}.`});}
+    await loadData();closeModal();
+  }catch(e){alert('Error: '+e.message);}
+}
+
+// ── MODAL PACIENTE ───────────────────────────
+function openModal(id){
+  const p=allData.find(x=>x.id===id);if(!p)return;
+  document.getElementById('modalName').textContent=p.nombre||p.nombre_completo||'—';
+  document.getElementById('modalSub').innerHTML=`${p.email||''} &nbsp;•&nbsp; ${statusBadge(p.estado)}`;
+  document.getElementById('modalBody').innerHTML=`
+    ${p.compatibilidad_pct!=null?`<div style="margin-bottom:20px"><div style="background:${p.compatibilidad_pct>=80?'linear-gradient(135deg,#E1F5EE,#f0faf7)':p.compatibilidad_pct>=50?'linear-gradient(135deg,#FFF3E0,#fffdf0)':'linear-gradient(135deg,#fdecea,#fff5f5)'};border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:20px;border:0.5px solid ${p.compatibilidad_pct>=80?'#b2dfdb':p.compatibilidad_pct>=50?'#FFE0B2':'#f5c6c6'}"><div style="position:relative;width:72px;height:72px;flex-shrink:0"><svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)"><circle cx="36" cy="36" r="30" fill="none" stroke="#f0f0f0" stroke-width="8"/><circle cx="36" cy="36" r="30" fill="none" stroke="${p.compatibilidad_pct>=80?'#0F6E56':p.compatibilidad_pct>=65?'#1D9E75':p.compatibilidad_pct>=45?'#E65100':'#c0392b'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${2*Math.PI*30}" stroke-dashoffset="${2*Math.PI*30*(1-p.compatibilidad_pct/100)}"/></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:16px;font-weight:700;font-family:'DM Serif Display',serif;color:${p.compatibilidad_pct>=80?'#0F6E56':p.compatibilidad_pct>=65?'#1D9E75':p.compatibilidad_pct>=45?'#E65100':'#c0392b'};line-height:1">${p.compatibilidad_pct}%</span></div></div><div style="flex:1"><div style="font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:${p.compatibilidad_pct>=80?'#0F6E56':p.compatibilidad_pct>=45?'#E65100':'#c0392b'};margin-bottom:4px">Compatibilidad GLP-1</div><div style="font-size:16px;font-weight:600;color:#1a2e28;font-family:'DM Serif Display',serif;margin-bottom:6px">${p.compatibilidad_label||'—'}</div><div style="height:6px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;width:${p.compatibilidad_pct}%;background:${p.compatibilidad_pct>=80?'#0F6E56':p.compatibilidad_pct>=65?'#1D9E75':p.compatibilidad_pct>=45?'#E65100':'#c0392b'}"></div></div><div style="font-size:11px;color:#5a7a72;margin-top:6px">Calculado en el pre-screening del paciente</div></div></div></div>`:''}
+    <div class="detail-section"><h4>Datos personales</h4><div class="detail-grid">
+      <div class="detail-item"><div class="di-label">Cédula</div><div class="di-val">${p.cedula||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">Teléfono</div><div class="di-val">${p.telefono||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">Fecha nacimiento</div><div class="di-val">${p.fecha_nacimiento||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">Sexo</div><div class="di-val">${p.sexo||'—'}</div></div>
+    </div></div>
+    <div class="detail-section"><h4>Datos físicos</h4><div class="detail-grid">
+      <div class="detail-item"><div class="di-label">Peso actual</div><div class="di-val">${p.peso_actual||'—'} lbs</div></div>
+      <div class="detail-item"><div class="di-label">Estatura</div><div class="di-val">${p.estatura||'—'} cm</div></div>
+      <div class="detail-item"><div class="di-label">Peso meta</div><div class="di-val">${p.peso_meta||'—'} lbs</div></div>
+      <div class="detail-item"><div class="di-label">BMI / IMC</div><div class="di-val">${bmiChip(p.bmi)}</div></div>
+    </div></div>
+    <div class="detail-section"><h4>Signos vitales</h4><div class="detail-grid">
+      <div class="detail-item"><div class="di-label">Presión arterial</div><div class="di-val">${p.presion_arterial||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">Frecuencia cardíaca</div><div class="di-val">${p.frecuencia_cardiaca||'—'}</div></div>
+    </div></div>
+    <div class="detail-section"><h4>Condiciones médicas</h4>
+      <div class="detail-full"><div class="di-label">Grupo 1</div><div class="di-val">${p.condiciones_grupo1||p.condiciones||'—'}</div></div>
+      <div class="detail-full"><div class="di-label">Grupo 2</div><div class="di-val">${p.condiciones_grupo2||'—'}</div></div>
+      <div class="detail-full"><div class="di-label">Grupo 3</div><div class="di-val">${p.condiciones_grupo3||'—'}</div></div>
+    </div>
+    <div class="detail-section"><h4>Medicamentos</h4><div class="detail-grid">
+      <div class="detail-item"><div class="di-label">Toma recetados</div><div class="di-val">${p.toma_medicamentos_recetados||p.toma_medicamentos||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">Opiáceos 3 meses</div><div class="di-val">${p.opioides_3meses||'—'}</div></div>
+    </div>
+      <div class="detail-full" style="margin-top:6px"><div class="di-label">Detalle medicamentos</div><div class="di-val">${p.medicamentos_detalle||'Ninguno'}</div></div>
+      <div class="detail-full"><div class="di-label">Alergias</div><div class="di-val">${p.alergias||'Ninguna'}</div></div>
+    </div>
+    ${p.medicamento_aprobado||p.numero_orden?`<div class="detail-section" style="background:linear-gradient(135deg,#E1F5EE,#f0faf7);border-radius:12px;padding:16px"><h4 style="color:#0F6E56;margin-bottom:10px">💊 Prescripción médica</h4><div class="detail-grid">
+      ${p.medicamento_aprobado?`<div class="detail-item"><div class="di-label">Medicamento</div><div class="di-val" style="color:#0F6E56">${p.medicamento_aprobado}</div></div>`:''}
+      ${p.numero_orden?`<div class="detail-item"><div class="di-label">Número de orden</div><div class="di-val" style="color:#0F6E56;font-family:monospace;font-size:14px;font-weight:700">${p.numero_orden}</div></div>`:''}
+      ${p.estado_pago?`<div class="detail-item"><div class="di-label">Estado pago</div><div class="di-val">${p.estado_pago==='pendiente_pago'?'⏳ Pendiente':'✅ Pagado'}</div></div>`:''}
+      ${p.notas_medico?`<div class="detail-full" style="grid-column:1/-1"><div class="di-label">Notas del médico</div><div class="di-val">${p.notas_medico}</div></div>`:''}
+    </div></div>`:''}
+    <div class="detail-section"><h4>Dirección</h4><div class="detail-grid">
+      <div class="detail-item"><div class="di-label">Ciudad</div><div class="di-val">${p.ciudad||'—'}</div></div>
+      <div class="detail-item"><div class="di-label">País</div><div class="di-val">${p.pais||'Ecuador'}</div></div>
+    </div><div class="detail-full" style="margin-top:6px"><div class="di-label">Dirección</div><div class="di-val">${p.direccion||'—'}</div></div></div>
+    <div class="detail-section" style="border-top:0.5px solid var(--border);padding-top:16px;margin-top:4px">
+      <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px"><span style="font-size:16px">🕐</span> Seguimiento del proceso</div>
+      <div id="timelineContainer"><div class="tl-loading">⏳ Cargando historial...</div></div>
+    </div>`;
+
+  const role=currentUser?.rol; const estado=norm(p.estado);
+  const actions=document.getElementById('modalActions'); actions.innerHTML='';
+  if((role==='admin'||role==='medico')&&estado==='en_revision_medica'){actions.innerHTML+=`<button class="modal-btn" style="background:#E1F5EE;color:#0F6E56;font-weight:600" onclick="abrirModalAprobacion(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}')">✅ Aprobar y prescribir</button>`;actions.innerHTML+=`<button class="modal-btn" style="background:#fdecea;color:#c0392b;font-weight:600" onclick="abrirModalRechazo(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}')">✗ Rechazar</button>`;}
+  if((role==='admin'||role==='laboratorio')&&estado==='aprobado_medico'){actions.innerHTML+=`<button class="modal-btn" style="background:#FFF9C4;color:#E65100;font-weight:600" onclick="updateStatus(${p.id},'lab_pendiente')">🟡 Recibir en laboratorio</button>`;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_pendiente'){actions.innerHTML+=`<button class="modal-btn" style="background:#E3F2FD;color:#1565C0;font-weight:600" onclick="updateStatus(${p.id},'lab_en_proceso')">🔵 Iniciar procesamiento</button>`;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_en_proceso'){actions.innerHTML+=`<button class="modal-btn" style="background:#E8F5E9;color:#2E7D32;font-weight:600" onclick="updateStatus(${p.id},'lab_listo')">🟢 Marcar como listo</button>`;}
+  if((role==='admin'||role==='laboratorio')&&estado==='lab_listo'){actions.innerHTML+=`<button class="modal-btn" style="background:#0F6E56;color:#fff;font-weight:600" onclick="updateStatus(${p.id},'enviado')">📦 Confirmar envío</button>`;}
+  actions.innerHTML+=`<button class="modal-btn" style="background:#f0f5f3;color:var(--muted)" onclick="closeModal()">Cerrar</button>`;
+  if(role==='admin'){
+    actions.innerHTML+=`<button class="modal-btn" style="background:#FFF3E0;color:#E65100;border:0.5px solid #FFE0B2" onclick="abrirModalRevertir(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}','${p.estado||''}')">↩ Revertir</button>`;
+    actions.innerHTML+=`<button class="modal-btn" style="background:transparent;color:#c0392b;border:0.5px solid #f5c6c6" onclick="confirmarEliminar(${p.id},'${(p.nombre||p.nombre_completo||'').replace(/'/g,"\\'")}')">🗑 Eliminar</button>`;
+  }
+
+  document.getElementById('modalOverlay').classList.add('show');
+  loadTimeline(p.id, p.created_at);
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
+
+// ── TIMELINE ─────────────────────────────────
+const TL_CFG={'en_revision_medica':{lbl:'🩺 Revisión médica',color:'#4527A0',bg:'#EDE7F6',dot:'#4527A0'},'aprobado_medico':{lbl:'✅ Aprobado por médico',color:'#0F6E56',bg:'#E1F5EE',dot:'#0F6E56'},'lab_pendiente':{lbl:'🟡 Lab: Pendiente',color:'#E65100',bg:'#FFF9C4',dot:'#E65100'},'lab_en_proceso':{lbl:'🔵 Lab: En proceso',color:'#1565C0',bg:'#E3F2FD',dot:'#1565C0'},'lab_listo':{lbl:'🟢 Lab: Listo',color:'#2E7D32',bg:'#E8F5E9',dot:'#2E7D32'},'enviado':{lbl:'📦 Enviado',color:'#1B5E20',bg:'#C8E6C9',dot:'#1B5E20'},'rechazado':{lbl:'✗ Rechazado',color:'#c0392b',bg:'#fdecea',dot:'#c0392b'},'pendiente':{lbl:'📋 Formulario enviado',color:'#0F6E56',bg:'#E1F5EE',dot:'#0F6E56'}};
+const ROL_CFG={'admin':{color:'#0F6E56',lbl:'Admin'},'medico':{color:'#4527A0',lbl:'Médico'},'laboratorio':{color:'#1565C0',lbl:'Laboratorio'},'paciente':{color:'#5a7a72',lbl:'Paciente'}};
+
+async function loadTimeline(pacienteId,createdAt){
+  const container=document.getElementById('timelineContainer');if(!container)return;
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria?paciente_id=eq.${pacienteId}&order=created_at.asc`,{headers:SB_GET});
+    const logs=await res.json();
+    const eventos=[{estado_nuevo:'pendiente',estado_anterior:null,usuario:'paciente',rol:'paciente',created_at:createdAt,es_inicio:true},...logs];
+    if(eventos.length<=1){container.innerHTML='<div class="tl-empty">📋 En espera de revisión. Sin acciones aún.</div>';return;}
+    const tiempoTotal=calcDuration(createdAt,eventos[eventos.length-1].created_at);
+    let html='<div class="timeline">';
+    eventos.forEach((ev,i)=>{
+      const cfg=TL_CFG[ev.estado_nuevo]||TL_CFG['pendiente'];
+      const rolCfg=ROL_CFG[ev.rol]||ROL_CFG['paciente'];
+      const isLast=i===eventos.length-1; const isRej=ev.estado_nuevo==='rechazado';
+      const cardClass=isLast&&!isRej?'tl-current':isRej?'tl-rejected':'';
+      const dur=i>0?calcDuration(eventos[i-1].created_at,ev.created_at):null;
+      const initials=ev.usuario?ev.usuario.substring(0,2).toUpperCase():'??';
+      html+=`<div class="tl-item"><div class="tl-dot" style="background:${cfg.dot}"></div><div class="tl-card ${cardClass}">
+        <div class="tl-top"><span class="tl-badge" style="background:${cfg.bg};color:${cfg.color}">${cfg.lbl}</span>${ev.estado_anterior?`<span style="font-size:10px;color:var(--muted)">← ${TL_CFG[ev.estado_anterior]?.lbl||ev.estado_anterior}</span>`:''}${isLast&&!isRej?'<span style="font-size:10px;background:#0F6E56;color:#fff;padding:2px 7px;border-radius:8px;font-weight:600">ACTUAL</span>':''}</div>
+        <div class="tl-bottom"><div class="tl-avatar" style="background:${rolCfg.color}">${initials}</div><div><div class="tl-user">${ev.usuario==='paciente'?'Paciente':ev.usuario}</div><div class="tl-role">${rolCfg.lbl}</div></div><div class="tl-time">${fmtDateTime(ev.created_at)}</div></div>
+        ${dur?`<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid ${cfg.bg}"><span class="tl-duration">⏱ ${dur} desde etapa anterior</span></div>`:''}
+      </div></div>`;
+    });
+    html+='</div>';
+    if(tiempoTotal)html+=`<div style="margin-top:12px;background:#f7faf9;border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;color:var(--muted)">⏱ <strong>Tiempo total:</strong> ${tiempoTotal}</span><span style="font-size:12px;color:var(--muted)">• 📋 <strong>${eventos.length-1} acción${eventos.length!==2?'es':''}</strong></span></div>`;
+    container.innerHTML=html;
+  }catch(e){container.innerHTML='<div class="tl-empty">No se pudo cargar el historial.</div>';}
+}
+
+// ── APROBACIÓN MÉDICA ────────────────────────
+let approvalTargetId=null,approvalTargetNombre='',selectedMed=null;
+function abrirModalAprobacion(id,nombre){approvalTargetId=id;approvalTargetNombre=nombre;selectedMed=null;document.getElementById('approvalPatientSub').textContent=nombre;document.getElementById('notasMedico').value='';document.querySelectorAll('.med-card').forEach(c=>c.classList.remove('selected'));const btn=document.getElementById('aprobarBtn');btn.disabled=true;btn.style.background='#ccc';btn.style.cursor='not-allowed';document.getElementById('approvalOverlay').classList.add('show');}
+function seleccionarMed(el,med){document.querySelectorAll('.med-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');selectedMed=med;const btn=document.getElementById('aprobarBtn');btn.disabled=false;btn.style.background='#0F6E56';btn.style.cursor='pointer';}
+function cerrarAprobacion(){document.getElementById('approvalOverlay').classList.remove('show');approvalTargetId=null;}
+
+function generarNumeroOrden(){const f=new Date();const yy=f.getFullYear().toString().slice(-2);const mm=String(f.getMonth()+1).padStart(2,'0');const dd=String(f.getDate()).padStart(2,'0');const rand=Math.random().toString(36).substring(2,7).toUpperCase();return `MV-${yy}${mm}${dd}-${rand}`;}
+
+async function ejecutarAprobacion(){
+  if(!approvalTargetId||!selectedMed)return;
+  const btn=document.getElementById('aprobarBtn');btn.textContent='⏳ Procesando...';btn.disabled=true;
+  const numeroOrden=generarNumeroOrden();const notas=document.getElementById('notasMedico').value.trim();const paciente=allData.find(x=>x.id===approvalTargetId);
+  try{
+    const res=await sbPatch('pacientes',`id=eq.${approvalTargetId}`,{estado:'aprobado_medico',medicamento_aprobado:selectedMed,notas_medico:notas,numero_orden:numeroOrden,estado_pago:'pendiente_pago'});
+    if(!res.ok)throw new Error('Error: '+res.status);
+    try{await sbPost('pacientes_auditoria',{paciente_id:approvalTargetId,estado_anterior:'en_revision_medica',estado_nuevo:'aprobado_medico',usuario:currentUser.username,rol:currentUser.rol});}catch(e){}
+    await notificarMake({evento:'CASO_APROBADO',numero_orden:numeroOrden,paciente_nombre:paciente?.nombre||paciente?.nombre_completo||'',paciente_email:paciente?.email||'',medicamento:selectedMed,notas_medico:notas,medico:currentUser.nombre_completo,fecha:new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),link_pago:`https://siscormed.org/pago?orden=${numeroOrden}`,mensaje_paciente:`Su tratamiento GLP-1 fue aprobado. Medicamento: ${selectedMed}. Orden: ${numeroOrden}. Proceda al pago para iniciar la preparación.`});
+    cerrarAprobacion();closeModal();await loadData();showToast(`✅ Orden ${numeroOrden} generada y enviada`,'success');
+  }catch(e){btn.textContent='✅ Confirmar prescripción';btn.disabled=false;btn.style.background='#0F6E56';showToast('❌ Error: '+e.message,'error');}
+}
+
+// ── RECHAZO MÉDICO ────────────────────────────
+let rejectTargetId=null,rejectTargetNombre='';
+function abrirModalRechazo(id,nombre){rejectTargetId=id;rejectTargetNombre=nombre;document.getElementById('rejectPatientSub').textContent=nombre;document.querySelectorAll('input[name="motivo"]').forEach(r=>r.checked=false);document.getElementById('motivoCustom').style.display='none';document.getElementById('motivoCustom').value='';document.querySelectorAll('input[name="motivo"]').forEach(r=>{r.onchange=()=>{document.getElementById('motivoCustom').style.display=r.value==='otro'?'block':'none';};});document.getElementById('rejectOverlay').classList.add('show');}
+function cerrarRechazo(){document.getElementById('rejectOverlay').classList.remove('show');rejectTargetId=null;}
+async function ejecutarRechazo(){
+  const mr=document.querySelector('input[name="motivo"]:checked');if(!mr){showToast('⚠️ Selecciona un motivo','error');return;}
+  let motivo=mr.value;if(motivo==='otro'){motivo=document.getElementById('motivoCustom').value.trim();if(!motivo){showToast('⚠️ Escribe el motivo','error');return;}}
+  const paciente=allData.find(x=>x.id===rejectTargetId);
+  try{
+    const res=await sbPatch('pacientes',`id=eq.${rejectTargetId}`,{estado:'rechazado',notas_medico:motivo});
+    if(!res.ok)throw new Error('Error: '+res.status);
+    try{await sbPost('pacientes_auditoria',{paciente_id:rejectTargetId,estado_anterior:'en_revision_medica',estado_nuevo:'rechazado',usuario:currentUser.username,rol:currentUser.rol});}catch(e){}
+    await notificarMake({evento:'CASO_RECHAZADO',paciente_nombre:paciente?.nombre||paciente?.nombre_completo||'',paciente_email:paciente?.email||'',motivo_rechazo:motivo,medico:currentUser.nombre_completo,fecha:new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),mensaje_paciente:`Lamentamos informarle que su solicitud no fue aprobada. Motivo: ${motivo}.`});
+    cerrarRechazo();closeModal();await loadData();showToast(`✗ Caso rechazado`,'error');
+  }catch(e){showToast('❌ Error: '+e.message,'error');}
+}
+
+// ── REVERTIR ESTADO ───────────────────────────
+let revertTargetId=null,revertEstadoActualVal=null,revertNuevoEstado=null;
+const TODOS_ESTADOS=[{key:'en_revision_medica',lbl:'🩺 Revisión médica',color:'#4527A0',bg:'#EDE7F6'},{key:'aprobado_medico',lbl:'✅ Aprobado por médico',color:'#0F6E56',bg:'#E1F5EE'},{key:'rechazado',lbl:'✗ Rechazado',color:'#c0392b',bg:'#fdecea'},{key:'lab_pendiente',lbl:'🟡 Lab: Pendiente',color:'#E65100',bg:'#FFF9C4'},{key:'lab_en_proceso',lbl:'🔵 Lab: En proceso',color:'#1565C0',bg:'#E3F2FD'},{key:'lab_listo',lbl:'🟢 Lab: Listo',color:'#2E7D32',bg:'#E8F5E9'},{key:'enviado',lbl:'📦 Enviado',color:'#1B5E20',bg:'#C8E6C9'}];
+function abrirModalRevertir(id,nombre,estadoActual){
+  revertTargetId=parseInt(id); // Asegurar que sea número
+  revertEstadoActualVal=norm((estadoActual||'').trim());
+  revertNuevoEstado=null;
+  document.getElementById('revertPatientSub').textContent=nombre;
+  document.getElementById('revertMotivo').value='';
+  const cfgA=TODOS_ESTADOS.find(e=>e.key===revertEstadoActualVal);
+  document.getElementById('revertEstadoActual').innerHTML=cfgA
+    ?`<span class="status-badge" style="background:${cfgA.bg};color:${cfgA.color}">${cfgA.lbl}</span>`
+    :revertEstadoActualVal;
+  document.getElementById('revertOpciones').innerHTML=TODOS_ESTADOS
+    .filter(e=>e.key!==revertEstadoActualVal)
+    .map(e=>`<label onclick="seleccionarRevert('${e.key}',this)" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:0.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;background:#fff" class="revert-opt">
+      <input type="radio" name="revertEstado" value="${e.key}" style="accent-color:${e.color};flex-shrink:0">
+      <span class="status-badge" style="background:${e.bg};color:${e.color}">${e.lbl}</span>
+    </label>`).join('');
+  document.getElementById('revertOverlay').classList.add('show');
+  console.log('Modal revertir abierto — ID:', revertTargetId, 'Estado actual:', revertEstadoActualVal);
+}
+function seleccionarRevert(estado,el){revertNuevoEstado=estado;document.querySelectorAll('.revert-opt').forEach(o=>{o.style.borderColor='var(--border)';o.style.background='#fff';});el.style.borderColor='#E65100';el.style.background='#FFF3E0';el.querySelector('input').checked=true;}
+function cerrarRevertir(){document.getElementById('revertOverlay').classList.remove('show');}
+async function ejecutarReversion(){
+  if(!revertTargetId||!revertNuevoEstado){showToast('⚠️ Selecciona el estado destino','error');return;}
+  const motivo=document.getElementById('revertMotivo').value.trim();
+  if(!motivo){showToast('⚠️ Escribe el motivo de la reversión','error');return;}
+
+  const btn=document.getElementById('revertConfirmBtn');
+  btn.textContent='⏳ Procesando...'; btn.disabled=true;
+
+  const cfgN=TODOS_ESTADOS.find(e=>e.key===revertNuevoEstado);
+  const paciente=allData.find(x=>x.id===revertTargetId);
+
+  // Construir body del PATCH — solo incluir campos que existen
+  const body={estado:revertNuevoEstado};
+  if(revertNuevoEstado==='en_revision_medica'){
+    body.medicamento_aprobado=null;
+    body.notas_medico=null;
+    body.numero_orden=null;
+    body.estado_pago=null;
+  }
+
+  try{
+    // Asegurar que el ID sea número entero
+    const idNum = parseInt(revertTargetId);
+    if(isNaN(idNum)) throw new Error('ID de paciente inválido: '+revertTargetId);
+
+    console.log('Revirtiendo paciente ID:', idNum, '→ nuevo estado:', revertNuevoEstado);
+
+    // 1. Actualizar estado
+    const url = `${SUPABASE_URL}/rest/v1/pacientes?id=eq.${idNum}`;
+    console.log('URL PATCH:', url);
+
+    const res=await fetch(url,{
+      method:'PATCH',
+      headers:SB_HEADERS,
+      body:JSON.stringify(body)
+    });
+
+    console.log('Response status:', res.status);
+
+    if(!res.ok){
+      const errText=await res.text();
+      console.error('Revertir PATCH error:',res.status,errText);
+      // Si el error es por campos que no existen, intentar solo con estado
+      if(res.status===400){
+        const res2=await fetch(url,{
+          method:'PATCH',
+          headers:SB_HEADERS,
+          body:JSON.stringify({estado:revertNuevoEstado})
+        });
+        if(!res2.ok) throw new Error(`Error ${res2.status} al actualizar estado`);
+      } else {
+        throw new Error(`Error ${res.status} al actualizar estado`);
+      }
+    }
+
+    // 2. Auditoría — silenciosa si la tabla no existe
+    try{
+      const auditRes=await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria`,{
+        method:'POST',
+        headers:SB_HEADERS,
+        body:JSON.stringify({
+          paciente_id:revertTargetId,
+          estado_anterior:revertEstadoActualVal,
+          estado_nuevo:revertNuevoEstado,
+          usuario:currentUser.username+' [REVERSIÓN]',
+          rol:currentUser.rol
+        })
+      });
+      if(!auditRes.ok) console.warn('Auditoría no disponible:', auditRes.status);
+    }catch(e){console.warn('Auditoría error:',e);}
+
+    // 3. Notificar Make.com — silencioso
+    try{
+      await notificarMake({
+        evento:'ESTADO_REVERTIDO',
+        paciente_nombre:paciente?.nombre||paciente?.nombre_completo||'',
+        estado_anterior:revertEstadoActualVal,
+        estado_nuevo:revertNuevoEstado,
+        estado_nuevo_label:cfgN?.lbl||revertNuevoEstado,
+        motivo_reversion:motivo,
+        admin:currentUser.nombre_completo,
+        fecha:new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'})
+      });
+    }catch(e){console.warn('Make.com notif:',e);}
+
+    cerrarRevertir();
+    closeModal();
+    await loadData();
+    showToast(`↩ Estado revertido a "${cfgN?.lbl}" correctamente`,'success');
+
+  }catch(e){
+    console.error('Error en revertir:',e);
+    showToast('❌ '+e.message,'error');
+    btn.textContent='↩ Confirmar reversión';
+    btn.disabled=false;
+  }
+}
+
+// ── ELIMINAR ─────────────────────────────────
+let deleteTargetId=null,deleteTargetName='';
+function confirmarEliminar(id,nombre){deleteTargetId=id;deleteTargetName=nombre;document.getElementById('deletePatientName').textContent=nombre;document.getElementById('deleteStep1').style.display='block';document.getElementById('deleteStep2').style.display='none';document.getElementById('deleteConfirmInput').value='';checkDeleteInput();document.getElementById('deleteOverlay').classList.add('show');}
+function irAPaso2(){document.getElementById('deleteStep1').style.display='none';document.getElementById('deleteStep2').style.display='block';setTimeout(()=>document.getElementById('deleteConfirmInput').focus(),100);}
+function volverAPaso1(){document.getElementById('deleteStep1').style.display='block';document.getElementById('deleteStep2').style.display='none';}
+function cancelarEliminar(){document.getElementById('deleteOverlay').classList.remove('show');}
+function checkDeleteInput(){const v=document.getElementById('deleteConfirmInput').value.trim().toUpperCase();const btn=document.getElementById('deleteConfirmBtn');if(v==='ELIMINAR'){btn.disabled=false;btn.style.background='#c0392b';btn.style.cursor='pointer';}else{btn.disabled=true;btn.style.background='#ccc';btn.style.cursor='not-allowed';}}
+async function ejecutarEliminar(){
+  if(!deleteTargetId)return;
+  const btn=document.getElementById('deleteConfirmBtn');btn.textContent='⏳ Eliminando...';btn.disabled=true;
+  const headers={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'};
+  try{
+    try{await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria?paciente_id=eq.${deleteTargetId}`,{method:'DELETE',headers});}catch(e){}
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes?id=eq.${deleteTargetId}`,{method:'DELETE',headers});
+    if(res.ok||res.status===204){cancelarEliminar();closeModal();await loadData();showToast(`✅ Paciente "${deleteTargetName}" eliminado`,'success');}
+    else{const t=await res.text();console.error('DELETE error:',res.status,t);showToast(`❌ Error ${res.status} al eliminar`,'error');btn.textContent='🗑 Eliminar definitivamente';btn.disabled=false;btn.style.background='#c0392b';btn.style.cursor='pointer';}
+  }catch(e){showToast('❌ Error: '+e.message,'error');btn.textContent='🗑 Eliminar definitivamente';btn.disabled=false;}
+}
+
+// ── MAKE.COM ──────────────────────────────────
+async function notificarMake(payload){try{await fetch(MAKE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){console.warn('Make.com:',e);}}
+
+// ── TOAST ─────────────────────────────────────
+function showToast(msg,type){const ex=document.getElementById('toast');if(ex)ex.remove();const t=document.createElement('div');t.id='toast';t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:999;padding:14px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.15);animation:fadeInUp 0.3s ease;max-width:360px;`+(type==='success'?'background:#E1F5EE;color:#0F6E56;border:0.5px solid #b2dfdb':'background:#fdecea;color:#c0392b;border:0.5px solid #f5c6c6');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},4000);}
+
+// ── NAVEGACIÓN ─────────────────────────────────
+function showPage(name,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');if(name==='pacientes')filterTable();if(name==='laboratorio')renderLab(currentLabFilter2);if(name==='usuarios'){loadUsuarios();}}
+</script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siscormed – Evaluación Médica</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;
+  --dark:#04342C;--white:#fff;--border:#d0e8e0;--text:#1a2e28;--muted:#5a7a72;
+  --orange:#E65100;--red:#c0392b;--purple:#4527A0;
+}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:#f8faf9}
+h1,h2,h3,h4{font-family:'DM Serif Display',serif}
+
+/* TOPBAR */
+.topbar{background:var(--dark);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.topbar-logo-icon{width:30px;height:30px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.topbar-logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:#fff}
+.back-link{font-size:13px;color:rgba(255,255,255,0.6);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s}
+.back-link:hover{color:#fff}
+
+/* PROGRESS */
+.progress-bar{background:var(--teal-light);padding:16px 32px}
+.progress-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.prog-step{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--muted)}
+.prog-step.done{color:var(--teal-mid)}
+.prog-step.active{color:var(--teal)}
+.prog-num{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.prog-step.active .prog-num{background:var(--teal);color:#fff}
+.prog-step.done .prog-num{background:var(--teal-mid);color:#fff;font-size:13px}
+.prog-line{width:36px;height:2px;background:var(--border);margin:0 6px}
+.prog-line.done{background:var(--teal-mid)}
+
+/* MAIN */
+.main{padding:36px 32px;max-width:760px;margin:0 auto}
+.page-label{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--teal-mid);text-transform:uppercase;margin-bottom:8px}
+.page-title{font-size:28px;color:var(--dark);margin-bottom:8px}
+.page-sub{color:var(--muted);font-size:15px;margin-bottom:32px;line-height:1.6}
+
+/* ── RESUMEN PRESCREENER ── */
+.summary-wrap{background:#fff;border:0.5px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:28px;box-shadow:0 2px 16px rgba(15,110,86,0.07)}
+
+.summary-header{background:linear-gradient(135deg,var(--dark) 0%,#0F6E56 100%);padding:24px 28px;display:flex;align-items:center;justify-content:space-between}
+.summary-header-left h3{font-size:18px;color:#fff;margin-bottom:3px}
+.summary-header-left p{font-size:13px;color:#9FE1CB}
+.summary-header-badge{background:rgba(255,255,255,0.15);border:0.5px solid rgba(255,255,255,0.25);padding:6px 14px;border-radius:20px;font-size:12px;color:#fff;font-weight:500}
+
+/* BMI banner */
+.bmi-banner{display:flex;align-items:center;gap:20px;padding:20px 28px;border-bottom:0.5px solid var(--border);background:#fafffe}
+.bmi-big{font-size:42px;font-family:'DM Serif Display',serif;line-height:1}
+.bmi-details{flex:1}
+.bmi-cat-text{font-size:16px;font-weight:500;margin-bottom:4px}
+.bmi-sub{font-size:12px;color:var(--muted)}
+.bmi-bar-wrap{margin-top:8px}
+.bmi-bar{height:8px;background:#f0f5f3;border-radius:4px;overflow:hidden;width:200px}
+.bmi-fill{height:100%;border-radius:4px}
+.metrics-row{display:flex;gap:0;border-bottom:0.5px solid var(--border)}
+.metric-box{flex:1;padding:16px 20px;text-align:center;border-right:0.5px solid var(--border)}
+.metric-box:last-child{border-right:none}
+.metric-val{font-size:20px;font-family:'DM Serif Display',serif;color:var(--dark)}
+.metric-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Secciones del resumen */
+.summary-section{padding:20px 28px;border-bottom:0.5px solid var(--border)}
+.summary-section:last-child{border-bottom:none}
+.ss-title{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--teal-mid);text-transform:uppercase;margin-bottom:14px}
+.ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ss-grid.full{grid-template-columns:1fr}
+.ss-item{background:#f7faf9;border-radius:8px;padding:10px 14px}
+.ss-item .si-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.ss-item .si-val{font-size:13px;color:var(--dark);font-weight:500;line-height:1.4}
+
+/* Condiciones tags */
+.cond-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.cond-tag{font-size:12px;padding:4px 10px;border-radius:6px;font-weight:400;line-height:1.4}
+.cond-ninguna{background:#E1F5EE;color:var(--teal)}
+.cond-warn{background:#FFF3E0;color:var(--orange)}
+.cond-bad{background:#fdecea;color:var(--red)}
+
+/* Vitales cards */
+.vitales-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vital-card{border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;background:#fafffe}
+.vital-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.vital-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.vital-val{font-size:13px;font-weight:500;color:var(--dark)}
+
+/* Sí/No pills */
+.yn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.yn-item{border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.yn-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.yn-val{font-size:13px;font-weight:500;padding:3px 10px;border-radius:10px;display:inline-block}
+.yn-no{background:#E1F5EE;color:var(--teal)}
+.yn-si{background:#fdecea;color:var(--red)}
+.yn-nd{background:#f0f5f3;color:var(--muted)}
+
+/* Compatibilidad */
+.compat-banner{background:linear-gradient(135deg,#E1F5EE,#f8faf9);border-bottom:0.5px solid var(--border);padding:20px 28px;display:flex;align-items:center;gap:20px}
+.compat-circle{width:64px;height:64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:3px solid}
+.compat-pct{font-size:20px;font-family:'DM Serif Display',serif;line-height:1}
+.compat-sign{font-size:11px}
+.compat-info h4{font-size:15px;color:var(--dark);margin-bottom:3px}
+.compat-info p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* ── FORMULARIO DATOS PERSONALES ── */
+.form-section{background:#fff;border:0.5px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:20px;box-shadow:0 2px 16px rgba(15,110,86,0.07)}
+.form-section-header{padding:20px 28px;border-bottom:0.5px solid var(--border);background:#f7faf9}
+.form-section-header h3{font-size:18px;color:var(--dark);margin-bottom:3px}
+.form-section-header p{font-size:13px;color:var(--muted)}
+.form-body{padding:24px 28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid.full{grid-template-columns:1fr}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:13px;font-weight:500;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{
+  font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;
+  border:0.5px solid var(--border);border-radius:8px;
+  background:#fafffe;color:var(--text);outline:none;transition:border-color 0.2s
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--teal-mid)}
+.form-group input:disabled{background:#f0f5f3;color:var(--muted);cursor:not-allowed}
+.field-note{font-size:11px;color:var(--muted);margin-top:3px}
+.form-divider{height:0.5px;background:var(--border);margin:20px 0}
+
+/* Terms */
+.terms-check{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:var(--teal-light);border:0.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;line-height:1.6;color:var(--text);margin-bottom:16px}
+.terms-check input{accent-color:var(--teal);margin-top:2px;flex-shrink:0;width:16px;height:16px}
+
+/* Submit */
+.submit-btn{width:100%;background:var(--teal);color:#fff;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:17px;border-radius:12px;border:none;cursor:pointer;transition:background 0.2s,transform 0.2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.submit-btn:hover{background:var(--dark);transform:translateY(-1px)}
+.submit-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none}
+.error-msg{background:#fff0f0;border:0.5px solid #f5c6c6;color:var(--red);padding:12px 16px;border-radius:8px;font-size:13px;margin-top:12px;display:none}
+.trust-row{display:flex;gap:20px;flex-wrap:wrap;padding:12px 0 0}
+.trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.trust-dot{width:6px;height:6px;border-radius:50%;background:var(--teal-mid)}
+
+/* SUCCESS */
+.success-screen{display:none;text-align:center;padding:60px 32px;max-width:520px;margin:0 auto}
+.success-icon{width:80px;height:80px;background:var(--teal-light);border-radius:50%;margin:0 auto 24px;display:flex;align-items:center;justify-content:center}
+.flow-steps{margin:28px 0;text-align:left}
+.flow-step{display:flex;gap:14px;padding:14px;border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;background:#fff}
+.flow-step-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.s1{background:var(--teal-light);color:var(--teal)}
+.s2{background:#FFF3E0;color:var(--orange)}
+.s3{background:#EDE7F6;color:var(--purple)}
+.flow-step h4{font-size:14px;font-weight:500;margin-bottom:2px;color:var(--dark)}
+.flow-step p{font-size:12px;color:var(--muted);line-height:1.5}
+
+@media(max-width:580px){
+  .form-grid,.form-grid.three,.ss-grid,.vitales-grid,.yn-grid{grid-template-columns:1fr}
+  .prog-line{width:16px}
+  .main{padding:20px 16px}
+  .topbar{padding:0 16px}
+  .summary-section,.form-body,.summary-header,.compat-banner,.bmi-banner{padding-left:16px;padding-right:16px}
+  .metrics-row{flex-wrap:wrap}
+  .metric-box{min-width:50%}
+}
+</style>
+</head>
+<body>
+
+<div id="main-page">
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">
+      <div class="topbar-logo-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+      </div>
+      <span class="topbar-logo-text">Siscormed</span>
+    </a>
+    <a href="prescreener.html" class="back-link">← Volver al pre-screening</a>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-inner">
+      <div class="prog-step done"><div class="prog-num">✓</div><span>Elegibilidad</span></div>
+      <div class="prog-line done"></div>
+      <div class="prog-step active"><div class="prog-num">2</div><span>Evaluación</span></div>
+      <div class="prog-line"></div>
+      <div class="prog-step"><div class="prog-num">3</div><span>Laboratorio</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-label">Paso 2 de 3</div>
+    <h2 class="page-title">Tu evaluación médica</h2>
+    <p class="page-sub">Aquí están los resultados de tu pre-screening. Verifica que todo esté correcto y completa tus datos personales para enviar al laboratorio.</p>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- RESUMEN PRESCREENER                    -->
+    <!-- ══════════════════════════════════════ -->
+    <div class="summary-wrap" id="summaryWrap">
+
+      <div class="summary-header">
+        <div class="summary-header-left">
+          <h3>Resumen de Pre-evaluación</h3>
+          <p>Datos registrados en el pre-screening</p>
+        </div>
+        <div class="summary-header-badge" id="compatBadge">Calculando...</div>
+      </div>
+
+      <!-- BMI -->
+      <div class="bmi-banner" id="bmiBanner">
+        <div class="bmi-big" id="bmiNum" style="color:var(--teal)">--</div>
+        <div class="bmi-details">
+          <div class="bmi-cat-text" id="bmiCatText">--</div>
+          <div class="bmi-sub">Índice de Masa Corporal (IMC)</div>
+          <div class="bmi-bar-wrap">
+            <div class="bmi-bar"><div class="bmi-fill" id="bmiFill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Métricas físicas -->
+      <div class="metrics-row" id="metricsRow">
+        <div class="metric-box"><div class="metric-val" id="mPeso">--</div><div class="metric-lbl">Peso (lbs)</div></div>
+        <div class="metric-box"><div class="metric-val" id="mEstatura">--</div><div class="metric-lbl">Estatura (cm)</div></div>
+        <div class="metric-box"><div class="metric-val" id="mEdad">--</div><div class="metric-lbl">Edad</div></div>
+        <div class="metric-box"><div class="metric-val" id="mSexo">--</div><div class="metric-lbl">Sexo</div></div>
+        <div class="metric-box"><div class="metric-val" id="mPerdida" style="color:var(--teal)">--</div><div class="metric-lbl">Pérdida estimada</div></div>
+      </div>
+
+      <!-- Compatibilidad -->
+      <div class="compat-banner" id="compatBanner">
+        <div class="compat-circle" id="compatCircle">
+          <span class="compat-pct" id="compatPct">--</span>
+          <span class="compat-sign">%</span>
+        </div>
+        <div class="compat-info">
+          <h4 id="compatTitle">Calculando compatibilidad...</h4>
+          <p id="compatDesc">Analizando tu perfil de salud con nuestro programa GLP-1.</p>
+        </div>
+      </div>
+
+      <!-- Condiciones grupo 1 -->
+      <div class="summary-section">
+        <div class="ss-title">Condiciones de salud — Grupo 1</div>
+        <div id="condG1Display"></div>
+      </div>
+
+      <!-- Condiciones grupo 2 -->
+      <div class="summary-section">
+        <div class="ss-title">Condiciones de salud — Grupo 2</div>
+        <div id="condG2Display"></div>
+      </div>
+
+      <!-- Condiciones grupo 3 -->
+      <div class="summary-section">
+        <div class="ss-title">Condiciones de salud — Grupo 3</div>
+        <div id="condG3Display"></div>
+      </div>
+
+      <!-- Preguntas adicionales -->
+      <div class="summary-section">
+        <div class="ss-title">Preguntas adicionales</div>
+        <div class="yn-grid" id="ynDisplay"></div>
+      </div>
+
+      <!-- Signos vitales -->
+      <div class="summary-section">
+        <div class="ss-title">Signos vitales</div>
+        <div class="vitales-grid" id="vitalesDisplay"></div>
+      </div>
+
+    </div>
+    <!-- FIN RESUMEN -->
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- FORMULARIO DATOS PERSONALES            -->
+    <!-- ══════════════════════════════════════ -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3>Datos personales</h3>
+        <p>Completa tu información para procesar la solicitud y coordinar el envío de tu medicamento.</p>
+      </div>
+      <div class="form-body">
+
+        <!-- Nombres -->
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>Primer nombre *</label>
+            <input type="text" id="nombre1" placeholder="Ej. María">
+          </div>
+          <div class="form-group">
+            <label>Segundo nombre</label>
+            <input type="text" id="nombre2" placeholder="Ej. Fernanda">
+          </div>
+          <div class="form-group">
+            <label>Primer apellido *</label>
+            <input type="text" id="apellido1" placeholder="Ej. García">
+          </div>
+          <div class="form-group">
+            <label>Segundo apellido</label>
+            <input type="text" id="apellido2" placeholder="Ej. López">
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Identificación -->
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>Cédula de identidad *</label>
+            <input type="text" id="cedula" placeholder="Ej. 0912345678" maxlength="10">
+            <span class="field-note">10 dígitos sin guiones</span>
+          </div>
+          <div class="form-group">
+            <label>RUC (opcional)</label>
+            <input type="text" id="ruc" placeholder="Ej. 0912345678001" maxlength="13">
+            <span class="field-note">Solo si necesitas factura</span>
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico *</label>
+            <input type="email" id="email" placeholder="tu@correo.com">
+          </div>
+          <div class="form-group">
+            <label>Teléfono *</label>
+            <input type="tel" id="telefono" placeholder="+593 99 000 0000">
+          </div>
+          <div class="form-group">
+            <label>Fecha de nacimiento *</label>
+            <input type="date" id="fecha_nacimiento">
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Dirección -->
+        <div class="form-grid full" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>Dirección de domicilio *</label>
+            <input type="text" id="direccion" placeholder="Ej. Av. 9 de Octubre 123 y Malecón, Edif. Torre Norte">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:0">
+          <div class="form-group">
+            <label>País</label>
+            <input type="text" id="pais" value="Ecuador" disabled>
+          </div>
+          <div class="form-group">
+            <label>Ciudad *</label>
+            <select id="ciudad">
+              <option value="">Seleccionar ciudad...</option>
+              <option value="Guayaquil">Guayaquil</option>
+              <option value="Quito">Quito</option>
+            </select>
+            <span class="field-note">Por el momento Guayaquil y Quito</span>
+          </div>
+          <div class="form-group">
+            <label>Sector / Barrio</label>
+            <input type="text" id="sector" placeholder="Ej. Urdesa, La Carolina">
+          </div>
+          <div class="form-group">
+            <label>Referencia</label>
+            <input type="text" id="referencia" placeholder="Ej. Frente al parque, casa azul">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Terms -->
+    <label class="terms-check">
+      <input type="checkbox" id="terms">
+      <span>Acepto que mis datos médicos y personales sean procesados por Siscormed y compartidos con el laboratorio y médico asignado para fines del tratamiento. Toda la información es confidencial y está protegida.</span>
+    </label>
+
+    <button class="submit-btn" id="submitBtn" onclick="enviarEvaluacion()">
+      <span id="btnText">Enviar a revisión médica</span>
+      <span id="btnArrow">🔬</span>
+    </button>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="trust-row">
+      <div class="trust-item"><div class="trust-dot"></div> Datos encriptados</div>
+      <div class="trust-item"><div class="trust-dot"></div> 100% confidencial</div>
+      <div class="trust-item"><div class="trust-dot"></div> Solo Ecuador</div>
+    </div>
+    <div style="height:48px"></div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <h2 style="font-size:28px;color:var(--dark);margin-bottom:10px">¡Solicitud enviada!</h2>
+  <p style="color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:20px">Tu evaluación médica fue recibida. Un médico revisará tu caso y te notificará en las próximas 24-48 horas.</p>
+
+  <div class="flow-steps">
+    <div class="flow-step" style="border-color:#0F6E56;background:#E1F5EE">
+      <div class="flow-step-num s1" style="background:#0F6E56;color:#fff;font-size:16px">👨‍⚕️</div>
+      <div>
+        <h4 style="color:#0F6E56">Revisión médica — EN PROCESO</h4>
+        <p>Un médico certificado revisará tu historial y evaluación. Recibirás una notificación cuando tu caso sea aprobado. Tiempo estimado: 24-48 hrs.</p>
+      </div>
+    </div>
+    <div class="flow-step" style="opacity:0.5">
+      <div class="flow-step-num s2">🔬</div>
+      <div>
+        <h4>Laboratorio</h4>
+        <p>Una vez aprobado por el médico, el laboratorio preparará tu medicamento personalizado.</p>
+      </div>
+    </div>
+    <div class="flow-step" style="opacity:0.5">
+      <div class="flow-step-num s3">📦</div>
+      <div>
+        <h4>Envío a tu domicilio</h4>
+        <p>Tu medicamento será enviado a la dirección registrada en Ecuador.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#f7faf9;border:0.5px solid #d0e8e0;border-radius:12px;padding:16px;text-align:left;margin:16px 0">
+    <p style="font-size:13px;color:#5a7a72;line-height:1.6">
+      📧 <strong>Revisa tu correo electrónico.</strong> Te enviaremos actualizaciones en cada paso del proceso. Si no recibes nada en 48 horas, contáctanos.
+    </p>
+  </div>
+
+  <p style="font-size:12px;color:var(--muted)">¡Bienvenido a Siscormed! Estamos comprometidos con tu salud.</p>
+  <a href="index.html" style="display:inline-block;margin-top:20px;background:var(--teal);color:#fff;padding:12px 28px;border-radius:100px;text-decoration:none;font-weight:500;font-size:14px">← Volver al inicio</a>
+</div>
+
+<script>
+const SUPABASE_URL='https://wwskicwdqbufrpuarmzk.supabase.co';
+const SUPABASE_KEY='sb_publishable_DosZhDbnOECHthVGFlMXTQ_cqUYLLFq';
+
+let prescreener={};
+
+// ── Helpers ──────────────────────────────────
+function condDisplay(val, isNinguna){
+  if(isNinguna || !val || val==='Ninguna de las anteriores'){
+    return `<div class="cond-list"><span class="cond-tag cond-ninguna">✓ Ninguna de las anteriores</span></div>`;
+  }
+  const items=val.split(' | ').filter(Boolean);
+  return `<div class="cond-list">${items.map(i=>`<span class="cond-tag cond-warn">${i.trim()}</span>`).join('')}</div>`;
+}
+
+function ynVal(v){
+  if(!v) return `<span class="yn-val yn-nd">No respondido</span>`;
+  return v==='no'
+    ? `<span class="yn-val yn-no">✓ No</span>`
+    : `<span class="yn-val yn-si">✗ Sí</span>`;
+}
+
+function bmiInfo(bmi){
+  if(bmi<18.5) return{cat:'Bajo peso',color:'#1565C0',pct:15};
+  if(bmi<25)   return{cat:'Peso normal',color:'#2E7D32',pct:38};
+  if(bmi<30)   return{cat:'Sobrepeso',color:'#E65100',pct:60};
+  if(bmi<35)   return{cat:'Obesidad I',color:'#c0392b',pct:75};
+  if(bmi<40)   return{cat:'Obesidad II',color:'#B71C1C',pct:88};
+  return{cat:'Obesidad III',color:'#7B0000',pct:96};
+}
+
+function compatInfo(compat){
+  if(compat>=90) return{label:'Excelente candidato',desc:'Tu perfil de salud es ideal para el tratamiento GLP-1.',color:'#0F6E56'};
+  if(compat>=70) return{label:'Buen candidato',desc:'Con seguimiento médico adecuado puedes beneficiarte del tratamiento.',color:'#1D9E75'};
+  if(compat>=50) return{label:'Candidato moderado',desc:'Tienes condiciones que el médico deberá evaluar antes de aprobar.',color:'#E65100'};
+  return{label:'Evaluación requerida',desc:'Tu caso requiere revisión médica especializada.',color:'#c0392b'};
+}
+
+function calcCompat(d){
+  const bmi=(parseFloat(d.peso_actual)*0.453592)/((parseFloat(d.estatura)/100)**2);
+  const hasBad= d.condiciones_grupo1 && d.condiciones_grupo1!=='Ninguna de las anteriores' && !d.ninguna1;
+  const warnCount=(d.ninguna2||d.condiciones_grupo2==='Ninguna de las anteriores'?0:1)+
+                  (d.ninguna3||d.condiciones_grupo3==='Ninguna de las anteriores'?0:1);
+  const allNinguna=d.ninguna1&&d.ninguna2&&d.ninguna3;
+  const allNo=d.opiaceos==='no'&&d.cirugia==='no'&&d.recetados==='no';
+  const presNormal=d.presion==='normal';
+  const fcLenta=d.fc==='lenta';
+
+  if(allNinguna&&allNo&&presNormal&&fcLenta&&!hasBad) return 100;
+
+  let c=0;
+  c+=bmi>=40?30:bmi>=35?25:bmi>=30?20:15;
+  if(hasBad) return Math.max(c,5);
+  c+=allNinguna?35:warnCount===0?30:warnCount<=2?18:8;
+  c+=allNo?20:10;
+  c+=presNormal?10:d.presion==='elevada'?5:0;
+  c+=fcLenta||d.fc==='normal'?5:0;
+  return Math.min(c,99);
+}
+
+// ── Renderizar resumen ────────────────────────
+function renderSummary(d){
+  const lbs=parseFloat(d.peso_actual)||0;
+  const cm=parseFloat(d.estatura)||0;
+  const bmi=cm>0?(lbs*0.453592)/((cm/100)**2):0;
+  const bi=bmiInfo(bmi);
+  const compat=calcCompat(d);
+  const ci=compatInfo(compat);
+
+  // BMI
+  document.getElementById('bmiNum').textContent=bmi.toFixed(1);
+  document.getElementById('bmiNum').style.color=bi.color;
+  document.getElementById('bmiCatText').textContent=bi.cat;
+  document.getElementById('bmiCatText').style.color=bi.color;
+  document.getElementById('bmiFill').style.width=bi.pct+'%';
+  document.getElementById('bmiFill').style.background=bi.color;
+
+  // Métricas
+  document.getElementById('mPeso').textContent=lbs+' lbs';
+  document.getElementById('mEstatura').textContent=cm+' cm';
+  document.getElementById('mEdad').textContent=d.edad||'--';
+  document.getElementById('mSexo').textContent=d.sexo||'--';
+  // Pérdida estimada
+  const pctMin=bmi>=40?18:bmi>=35?15:bmi>=30?12:8;
+  const pctMax=bmi>=40?22:bmi>=35?20:bmi>=30?17:12;
+  const lbsMin=Math.round(lbs*(pctMin/100));
+  const lbsMax=Math.round(lbs*(pctMax/100));
+  document.getElementById('mPerdida').textContent=`${pctMin}-${pctMax}% (~${lbsMin}-${lbsMax} lbs)`;
+
+  // Compatibilidad
+  document.getElementById('compatPct').textContent=compat;
+  document.getElementById('compatBadge').textContent=ci.label;
+  const circle=document.getElementById('compatCircle');
+  circle.style.borderColor=ci.color;
+  circle.style.background=ci.color+'18';
+  document.getElementById('compatPct').style.color=ci.color;
+  document.getElementById('compatTitle').textContent=ci.label;
+  document.getElementById('compatDesc').textContent=ci.desc;
+
+  // Condiciones
+  document.getElementById('condG1Display').innerHTML=condDisplay(d.condiciones_grupo1, d.ninguna1);
+  document.getElementById('condG2Display').innerHTML=condDisplay(d.condiciones_grupo2, d.ninguna2);
+  document.getElementById('condG3Display').innerHTML=condDisplay(d.condiciones_grupo3, d.ninguna3);
+
+  // Sí/No
+  document.getElementById('ynDisplay').innerHTML=`
+    <div class="yn-item"><div class="yn-label">Opiáceos últimos 3 meses</div>${ynVal(d.opiaceos)}</div>
+    <div class="yn-item"><div class="yn-label">Cirugías previas de peso</div>${ynVal(d.cirugia)}</div>
+    <div class="yn-item"><div class="yn-label">Medicamentos recetados</div>${ynVal(d.recetados)}</div>`;
+
+  // Vitales
+  const presLabel=d.presion_label||d.presion||'No indicado';
+  const fcLabel=d.fc_label||d.fc||'No indicado';
+  const presColor=d.presion==='normal'?'#e8f5e9':d.presion==='elevada'?'#fff8e1':'#fdecea';
+  const fcColor=d.fc==='lenta'||d.fc==='normal'?'#e8f5e9':d.fc==='rapida'?'#fff3e0':'#fdecea';
+  document.getElementById('vitalesDisplay').innerHTML=`
+    <div class="vital-card">
+      <div class="vital-icon" style="background:${presColor}">💧</div>
+      <div><div class="vital-label">Presión arterial</div><div class="vital-val">${presLabel}</div></div>
+    </div>
+    <div class="vital-card">
+      <div class="vital-icon" style="background:${fcColor}">♥</div>
+      <div><div class="vital-label">Frecuencia cardíaca</div><div class="vital-val">${fcLabel}</div></div>
+    </div>`;
+}
+
+// ── Validar cédula ecuatoriana ────────────────
+function validarCedula(c){
+  if(!/^\d{10}$/.test(c)) return false;
+  const p=parseInt(c.substring(0,2));
+  if(p<1||p>24) return false;
+  const coef=[2,1,2,1,2,1,2,1,2];
+  let s=0;
+  for(let i=0;i<9;i++){let v=parseInt(c[i])*coef[i];if(v>=10)v-=9;s+=v;}
+  return (10-(s%10))%10===parseInt(c[9]);
+}
+
+// ── Enviar al laboratorio ─────────────────────
+async function enviarEvaluacion(){
+  const nombre1=document.getElementById('nombre1').value.trim();
+  const apellido1=document.getElementById('apellido1').value.trim();
+  const cedula=document.getElementById('cedula').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const telefono=document.getElementById('telefono').value.trim();
+  const fecha_nacimiento=document.getElementById('fecha_nacimiento').value;
+  const direccion=document.getElementById('direccion').value.trim();
+  const ciudad=document.getElementById('ciudad').value;
+  const terms=document.getElementById('terms').checked;
+  const errorEl=document.getElementById('errorMsg');
+  errorEl.style.display='none';
+
+  if(!nombre1||!apellido1||!cedula||!email||!telefono||!fecha_nacimiento||!direccion||!ciudad){
+    errorEl.textContent='Por favor completa todos los campos obligatorios (*)';
+    errorEl.style.display='block';
+    errorEl.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(!validarCedula(cedula)){
+    errorEl.textContent='La cédula ingresada no es válida. Verifica los 10 dígitos.';
+    errorEl.style.display='block';
+    return;
+  }
+  const ruc=document.getElementById('ruc').value.trim();
+  if(ruc&&!/^\d{13}$/.test(ruc)){
+    errorEl.textContent='El RUC debe tener 13 dígitos.';
+    errorEl.style.display='block';
+    return;
+  }
+  if(!terms){
+    errorEl.textContent='Debes aceptar los términos para continuar.';
+    errorEl.style.display='block';
+    return;
+  }
+
+  const lbs=parseFloat(prescreener.peso_actual)||0;
+  const cm=parseFloat(prescreener.estatura)||0;
+  const bmi=cm>0?Math.round((lbs*0.453592/((cm/100)**2))*10)/10:null;
+
+  // Calcular compatibilidad del prescreener para guardarla
+  const compatPct=calcCompat(prescreener);
+  const compatLbl=compatPct===100?'Candidato Perfecto':compatPct>=80?'Excelente candidato':compatPct>=65?'Buen candidato':compatPct>=45?'Candidato con consideraciones':compatPct>=25?'Requiere evaluación especializada':'Contraindicación potencial';
+
+  const nombre2=document.getElementById('nombre2').value.trim();
+  const apellido2=document.getElementById('apellido2').value.trim();
+  const nombreCompleto=[nombre1,nombre2,apellido1,apellido2].filter(Boolean).join(' ');
+
+  const payload={
+    // Datos físicos del prescreener
+    peso_actual:lbs||null,
+    estatura:cm||null,
+    sexo:prescreener.sexo||null,
+    bmi,
+    // Compatibilidad del prescreener
+    compatibilidad_pct: compatPct,
+    compatibilidad_label: compatLbl,
+    // Condiciones
+    condiciones_grupo1:prescreener.condiciones_grupo1||'Ninguna de las anteriores',
+    condiciones_grupo2:prescreener.condiciones_grupo2||'Ninguna de las anteriores',
+    condiciones_grupo3:prescreener.condiciones_grupo3||'Ninguna de las anteriores',
+    // Preguntas
+    opioides_3meses:prescreener.opiaceos==='no'?'No':'Sí',
+    cirugia_previa_peso:prescreener.cirugia==='no'?'No':'Sí',
+    toma_medicamentos_recetados:prescreener.recetados==='no'?'No':'Sí',
+    // Vitales
+    presion_arterial:prescreener.presion_label||prescreener.presion||null,
+    frecuencia_cardiaca:prescreener.fc_label||prescreener.fc||null,
+    // Datos personales
+    nombre: nombreCompleto,
+    nombres: [nombre1,nombre2].filter(Boolean).join(' '),
+    apellidos: [apellido1,apellido2].filter(Boolean).join(' '),
+    nombre_completo: nombreCompleto,
+    fecha_nacimiento,
+    email,
+    telefono,
+    cedula,
+    ruc:ruc||null,
+    // Dirección
+    direccion,
+    ciudad,
+    sector:document.getElementById('sector').value.trim()||null,
+    referencia:document.getElementById('referencia').value.trim()||null,
+    pais:'Ecuador',
+    estado:'en_revision_medica'
+  };
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  document.getElementById('btnText').textContent='Enviando a revisión médica...';
+  document.getElementById('btnArrow').textContent='⏳';
+
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok){
+      sessionStorage.removeItem('siscormed_prescreener');
+      document.getElementById('main-page').style.display='none';
+      document.getElementById('success-screen').style.display='block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      const err=await res.json();
+      errorEl.textContent='Error: '+(err.message||err.hint||'Verifica tu configuración de Supabase.');
+      errorEl.style.display='block';
+      btn.disabled=false;
+      document.getElementById('btnText').textContent='Enviar a revisión médica';
+      document.getElementById('btnArrow').textContent='🔬';
+    }
+  }catch(e){
+    errorEl.textContent='Error de conexión: '+e.message;
+    errorEl.style.display='block';
+    btn.disabled=false;
+    document.getElementById('btnText').textContent='Enviar a revisión médica';
+    document.getElementById('btnArrow').textContent='🔬';
+  }
+}
+
+// ── Init ──────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  try{
+    const saved=sessionStorage.getItem('siscormed_prescreener');
+    if(saved){
+      prescreener=JSON.parse(saved);
+      renderSummary(prescreener);
+    } else {
+      // Sin datos del prescreener — mostrar aviso
+      document.getElementById('summaryWrap').innerHTML=`
+        <div style="padding:32px;text-align:center;color:var(--muted)">
+          <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+          <p style="font-size:15px;margin-bottom:16px">No se encontraron datos del pre-screening.</p>
+          <a href="prescreener.html" style="color:var(--teal);font-weight:500;text-decoration:none">← Volver al pre-screening</a>
+        </div>`;
+    }
+  }catch(e){ console.warn(e); }
+});
+</script>
+</body>
+</html>
