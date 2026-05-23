@@ -12,7 +12,7 @@ Plataforma web completa para la gestión de pacientes candidatos a tratamiento G
 | Panel admin   | https://siscormed.com/admin.html           |
 | Base de datos | Supabase (`wwskicwdqbufrpuarmzk`)          |
 | Automatización| Make.com                                   |
-| Servidor      | Synology NAS1821 (red interna)             |
+| Servidor      | Synology NAS1821 — `192.168.0.116` (LAN)   |
 
 ---
 
@@ -119,8 +119,8 @@ Sistema de 4 rutas activadas por webhook de Supabase:
 
 ### Synology NAS1821
 
-- **Red:** interna (LAN)
-- **Web Station:** Nginx — sitio estático en `/web/siscormed`
+- **IP LAN:** `192.168.0.116`
+- **Web Station:** Nginx — sitio estático en `/volume2/web/siscormed`
 - **MailPlus Server:** SMTP/IMAP activo para `siscormed.com`
 - **Certificados SSL:** Let's Encrypt para `siscormed.com` y `mail.siscormed.com`
 
