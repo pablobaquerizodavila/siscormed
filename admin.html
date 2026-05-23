@@ -631,31 +631,31 @@ h1,h2,h3{font-family:'DM Serif Display',serif}
 </div>
 
 <script>
-const SUPABASE_URL = 'https://wwskicwdqbufrpuarmzk.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DosZhDbnOECHthVGFlMXTQ_cqUYLLFq';
-const MAKE_WEBHOOK = 'https://hook.us2.make.com/q2djoj1p4lkshf6bwjzd4xxhpeagbo4q';
+const API_BASE = '/api';
+// El URL real de Make.com vive server-side en config.local.php; el cliente
+// solo conoce /api/notificar.php (ver notificarMake() abajo).
 
 let currentUser = null;
 let allData = [];
 let allUsuarios = [];
 let currentLabFilter = 'all';
 
-// ── Helpers Supabase ─────────────────────────
-const SB_HEADERS = { 'Content-Type':'application/json', 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Prefer':'return=minimal' };
-const SB_GET = { 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY };
+// ── Helpers API (sintaxis PostgREST-like; el server PHP la parsea) ──
+const SB_HEADERS = { 'Content-Type':'application/json', 'Prefer':'return=minimal' };
+const SB_GET = {};
 
 async function sbGet(table, query='') {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, { headers: SB_GET });
+  const r = await fetch(`${API_BASE}/${table}.php?${query}`, { headers: SB_GET });
   return r.json();
 }
 async function sbPatch(table, filter, body) {
-  return fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, { method:'PATCH', headers:SB_HEADERS, body:JSON.stringify(body) });
+  return fetch(`${API_BASE}/${table}.php?${filter}`, { method:'PATCH', headers:SB_HEADERS, body:JSON.stringify(body) });
 }
 async function sbPost(table, body) {
-  return fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method:'POST', headers:SB_HEADERS, body:JSON.stringify(body) });
+  return fetch(`${API_BASE}/${table}.php`, { method:'POST', headers:SB_HEADERS, body:JSON.stringify(body) });
 }
 async function sbDelete(table, filter) {
-  return fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, { method:'DELETE', headers:SB_HEADERS });
+  return fetch(`${API_BASE}/${table}.php?${filter}`, { method:'DELETE', headers:SB_HEADERS });
 }
 
 // ── Auth tabs ────────────────────────────────
@@ -712,40 +712,36 @@ async function doLogin() {
   if (!input || !pass) { err.textContent='Ingresa usuario y contraseña'; err.style.display='block'; return; }
 
   try {
-    // Buscar por username o email
-    const data = await sbGet('admin_usuarios',
-      `select=*&or=(username.eq.${encodeURIComponent(input)},email.eq.${encodeURIComponent(input)})`
-    );
+    const res = await fetch(`${API_BASE}/auth.php?action=login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: input, pass: pass })
+    });
+    const data = await res.json();
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (res.status === 401) {
       err.textContent = 'Usuario o contraseña incorrectos'; err.style.display='block'; return;
     }
-
-    const user = data[0];
-
-    // Verificar contraseña (texto plano — en producción usar hash)
-    if (user.password_hash !== pass) {
-      err.textContent = 'Usuario o contraseña incorrectos'; err.style.display='block'; return;
-    }
-
-    // Verificar estado
-    if (user.estado === 'pendiente') {
+    if (res.status === 403 && data.estado === 'pendiente') {
       document.getElementById('screenLogin').style.display = 'none';
       document.getElementById('screenPendiente').style.display = 'flex';
-      document.getElementById('pendNombre').textContent = user.nombre_completo;
-      document.getElementById('pendRol').textContent = user.rol.charAt(0).toUpperCase() + user.rol.slice(1);
+      document.getElementById('pendNombre').textContent = data.nombre_completo;
+      document.getElementById('pendRol').textContent = data.rol.charAt(0).toUpperCase() + data.rol.slice(1);
       return;
     }
-    if (user.estado === 'rechazado') {
+    if (res.status === 403 && data.estado === 'rechazado') {
       err.textContent = '❌ Tu solicitud de acceso fue rechazada. Contacta al administrador.'; err.style.display='block'; return;
     }
-    if (user.estado === 'suspendido') {
+    if (res.status === 403 && data.estado === 'suspendido') {
       err.textContent = '🚫 Tu cuenta está suspendida. Contacta al administrador.'; err.style.display='block'; return;
     }
+    if (!res.ok) {
+      err.textContent = 'Error del servidor (' + res.status + ')'; err.style.display='block'; return;
+    }
 
-    // Login exitoso
-    currentUser = user;
-    iniciarSesion(user);
+    // Login exitoso — `data` es el row sin password_hash
+    currentUser = data;
+    iniciarSesion(data);
 
   } catch(e) {
     err.textContent = 'Error de conexión: ' + e.message; err.style.display='block';
@@ -1334,7 +1330,7 @@ const ROL_CFG={'admin':{color:'#0F6E56',lbl:'Admin'},'medico':{color:'#4527A0',l
 async function loadTimeline(pacienteId,createdAt){
   const container=document.getElementById('timelineContainer');if(!container)return;
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria?paciente_id=eq.${pacienteId}&order=created_at.asc`,{headers:SB_GET});
+    const res=await fetch(`${API_BASE}/pacientes_auditoria.php?paciente_id=eq.${pacienteId}&order=created_at.asc`,{headers:SB_GET});
     const logs=await res.json();
     const eventos=[{estado_nuevo:'pendiente',estado_anterior:null,usuario:'paciente',rol:'paciente',created_at:createdAt,es_inicio:true},...logs];
     if(eventos.length<=1){container.innerHTML='<div class="tl-empty">📋 En espera de revisión. Sin acciones aún.</div>';return;}
@@ -1449,7 +1445,7 @@ async function ejecutarReversion(){
     console.log('Revirtiendo paciente ID:', idNum, '→ nuevo estado:', revertNuevoEstado);
 
     // 1. Actualizar estado
-    const url = `${SUPABASE_URL}/rest/v1/pacientes?id=eq.${idNum}`;
+    const url = `${API_BASE}/pacientes.php?id=eq.${idNum}`;
     console.log('URL PATCH:', url);
 
     const res=await fetch(url,{
@@ -1478,7 +1474,7 @@ async function ejecutarReversion(){
 
     // 2. Auditoría — silenciosa si la tabla no existe
     try{
-      const auditRes=await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria`,{
+      const auditRes=await fetch(`${API_BASE}/pacientes_auditoria.php`,{
         method:'POST',
         headers:SB_HEADERS,
         body:JSON.stringify({
@@ -1529,17 +1525,21 @@ function checkDeleteInput(){const v=document.getElementById('deleteConfirmInput'
 async function ejecutarEliminar(){
   if(!deleteTargetId)return;
   const btn=document.getElementById('deleteConfirmBtn');btn.textContent='⏳ Eliminando...';btn.disabled=true;
-  const headers={'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'};
+  const headers={'Content-Type':'application/json','Prefer':'return=minimal'};
   try{
-    try{await fetch(`${SUPABASE_URL}/rest/v1/pacientes_auditoria?paciente_id=eq.${deleteTargetId}`,{method:'DELETE',headers});}catch(e){}
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes?id=eq.${deleteTargetId}`,{method:'DELETE',headers});
+    // Nota: pacientes_auditoria.FK ON DELETE CASCADE limpia el historial al
+    // borrar el paciente, pero mantenemos el DELETE explícito por compat.
+    try{await fetch(`${API_BASE}/pacientes_auditoria.php?paciente_id=eq.${deleteTargetId}`,{method:'DELETE',headers});}catch(e){}
+    const res=await fetch(`${API_BASE}/pacientes.php?id=eq.${deleteTargetId}`,{method:'DELETE',headers});
     if(res.ok||res.status===204){cancelarEliminar();closeModal();await loadData();showToast(`✅ Paciente "${deleteTargetName}" eliminado`,'success');}
     else{const t=await res.text();console.error('DELETE error:',res.status,t);showToast(`❌ Error ${res.status} al eliminar`,'error');btn.textContent='🗑 Eliminar definitivamente';btn.disabled=false;btn.style.background='#c0392b';btn.style.cursor='pointer';}
   }catch(e){showToast('❌ Error: '+e.message,'error');btn.textContent='🗑 Eliminar definitivamente';btn.disabled=false;}
 }
 
-// ── MAKE.COM ──────────────────────────────────
-async function notificarMake(payload){try{await fetch(MAKE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){console.warn('Make.com:',e);}}
+// ── MAKE.COM (proxy server-side) ──────────────
+// El URL real del webhook está en config.local.php — el cliente solo conoce
+// /api/notificar.php. El server hace fire-and-forget con timeout corto.
+async function notificarMake(payload){try{await fetch(`${API_BASE}/notificar.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){console.warn('notificar:',e);}}
 
 // ── TOAST ─────────────────────────────────────
 function showToast(msg,type){const ex=document.getElementById('toast');if(ex)ex.remove();const t=document.createElement('div');t.id='toast';t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:999;padding:14px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.15);animation:fadeInUp 0.3s ease;max-width:360px;`+(type==='success'?'background:#E1F5EE;color:#0F6E56;border:0.5px solid #b2dfdb':'background:#fdecea;color:#c0392b;border:0.5px solid #f5c6c6');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},4000);}

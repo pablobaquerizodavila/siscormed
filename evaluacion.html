@@ -426,8 +426,7 @@ h1,h2,h3,h4{font-family:'DM Serif Display',serif}
 </div>
 
 <script>
-const SUPABASE_URL='https://wwskicwdqbufrpuarmzk.supabase.co';
-const SUPABASE_KEY='sb_publishable_DosZhDbnOECHthVGFlMXTQ_cqUYLLFq';
+const API_BASE='/api';
 
 let prescreener={};
 
@@ -656,9 +655,9 @@ async function enviarEvaluacion(){
   document.getElementById('btnArrow').textContent='⏳';
 
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/pacientes`,{
+    const res=await fetch(`${API_BASE}/pacientes.php`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+      headers:{'Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify(payload)
     });
     if(res.ok){
@@ -668,7 +667,7 @@ async function enviarEvaluacion(){
       window.scrollTo({top:0,behavior:'smooth'});
     } else {
       const err=await res.json();
-      errorEl.textContent='Error: '+(err.message||err.hint||'Verifica tu configuración de Supabase.');
+      errorEl.textContent='Error: '+(err.message||err.hint||'No se pudo enviar el formulario. Intenta de nuevo.');
       errorEl.style.display='block';
       btn.disabled=false;
       document.getElementById('btnText').textContent='Enviar a revisión médica';
