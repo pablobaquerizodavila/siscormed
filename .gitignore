@@ -30,3 +30,14 @@ yarn-error.log*
 dist/
 build/
 .cache/
+
+# NUNCA commitear: datos reales con PII y dumps de BD
+data-local/
+*.csv
+!data-local/.example.csv
+dumps/
+*.sql.gz
+*-data.sql
+
+# Config local con credenciales DB
+/api/config.local.php
