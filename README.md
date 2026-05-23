@@ -163,7 +163,7 @@ Acceso en: `https://siscormed.com/admin.html`
 - [ ] **Facturación electrónica** — Comprobante PDF post-pago
 - [ ] **Confirmación de pago** — Webhook Stripe → Supabase → Make.com
 - [ ] **Notificación al lab** — Solo después de confirmación de pago
-- [ ] **SPF/DKIM/DMARC** — Configuración completa anti-spam
+- [x] ~~**SPF/DKIM/DMARC**~~ — los 3 en `pass` verificado en Gmail (mayo 2026; DMARC en `p=none` para monitoring, planeado subir a `p=quarantine` tras semana de reportes)
 - [x] ~~**`www` redirect**~~ — `www.siscormed.com` → `siscormed.com` con 301 (mayo 2026)
 
 ---
