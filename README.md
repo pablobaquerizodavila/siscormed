@@ -164,7 +164,7 @@ Acceso en: `https://siscormed.com/admin.html`
 - [ ] **Confirmación de pago** — Webhook Stripe → Supabase → Make.com
 - [ ] **Notificación al lab** — Solo después de confirmación de pago
 - [ ] **SPF/DKIM/DMARC** — Configuración completa anti-spam
-- [ ] **`www` redirect** — Redirección `www.siscormed.com` → `siscormed.com`
+- [x] ~~**`www` redirect**~~ — `www.siscormed.com` → `siscormed.com` con 301 (mayo 2026)
 
 ---
 
