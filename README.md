@@ -117,6 +117,9 @@ Sistema de 4 rutas activadas por webhook de Supabase:
 
 ## 🖥️ Infraestructura
 
+> Ver [`docs/infra.md`](docs/infra.md) para el mapa completo del hosting compartido
+> (VM reverse-proxy `.7` + NAS `.116`) con diagrama Mermaid y notas operativas.
+
 ### Synology NAS1821
 
 - **IP LAN:** `192.168.0.116`
