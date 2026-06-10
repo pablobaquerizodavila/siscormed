@@ -904,33 +904,22 @@ async function doRecuperar() {
   if (!input) { err.textContent='Ingresa tu usuario o email de recuperación'; err.style.display='block'; return; }
 
   try {
-    const data = await sbGet('admin_usuarios',
-      `select=id,nombre_completo,email,email_recuperacion,username&or=(username.eq.${encodeURIComponent(input)},email_recuperacion.eq.${encodeURIComponent(input)},email.eq.${encodeURIComponent(input)})`
-    );
-
-    if (!Array.isArray(data) || data.length === 0) {
-      err.textContent='No encontramos ninguna cuenta con ese dato. Contacta al administrador.'; err.style.display='block'; return;
-    }
-
-    const user = data[0];
-    // Generar token temporal
-    const token = Math.random().toString(36).substring(2,10).toUpperCase();
-    const expiry = new Date(Date.now() + 3600000).toISOString(); // 1 hora
-
-    await sbPatch('admin_usuarios', `id=eq.${user.id}`, { token_recuperacion: token, token_expiry: expiry });
-
-    // Notificar via Make.com
-    await notificarMake({
-      evento: 'RECUPERAR_PASSWORD',
-      nombre_completo: user.nombre_completo,
-      email: user.email_recuperacion || user.email,
-      username: user.username,
-      token_recuperacion: token,
-      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
-      mensaje: `Tu código de recuperación temporal es: ${token}. Válido por 1 hora. Contacta al administrador con este código para que restablezca tu contraseña.`
+    // El token se genera SERVER-SIDE con CSPRNG (random_bytes). El cliente
+    // sólo pasa el identificador; nunca recibe ni el token ni datos del user.
+    const res = await fetch(`${API_BASE}/admin_recovery.php?action=request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: input })
     });
 
-    suc.textContent = `✅ Instrucciones enviadas al email de recuperación. Si no recibes el correo en 5 minutos, contacta al administrador con tu usuario: ${user.username}`;
+    if (res.status === 404) {
+      err.textContent='No encontramos ninguna cuenta con ese dato. Contacta al administrador.'; err.style.display='block'; return;
+    }
+    if (!res.ok) {
+      err.textContent='Error del servidor ('+res.status+')'; err.style.display='block'; return;
+    }
+
+    suc.textContent = '✅ Si la cuenta existe, enviamos instrucciones al email de recuperación. Si no recibes el correo en 5 minutos, contacta al administrador.';
     suc.style.display = 'block';
 
   } catch(e) {
@@ -1060,21 +1049,25 @@ async function resetPasswordAdmin(id) {
   if (!u) return;
   const newPass = prompt(`Nueva contraseña para ${u.nombre_completo}:`);
   if (!newPass || newPass.length < 8) { showToast('⚠️ La contraseña debe tener al menos 8 caracteres', 'error'); return; }
-  const res = await sbPatch('admin_usuarios', `id=eq.${id}`, { password_hash: newPass, token_recuperacion: null, token_expiry: null });
+  // El server: (1) hashea con bcrypt, (2) escribe en DB, (3) dispara el
+  // webhook con el `mensaje` ya construido. La password solo viaja una vez
+  // (no como campo separado `nueva_password`) para reducir su huella en
+  // logs de Make.com.
+  const res = await fetch(`${API_BASE}/admin_recovery.php?action=admin_reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      admin_username: currentUser.username,
+      target_id: id,
+      new_password: newPass
+    })
+  });
   if (res.ok) {
-    await notificarMake({
-      evento: 'PASSWORD_RESETEADO',
-      nombre_completo: u.nombre_completo,
-      email: u.email_recuperacion || u.email,
-      username: u.username,
-      nueva_password: newPass,
-      admin: currentUser.nombre_completo,
-      fecha: new Date().toLocaleString('es-EC',{timeZone:'America/Guayaquil'}),
-      mensaje: `El administrador ha restablecido tu contraseña. Tu nueva contraseña temporal es: ${newPass}. Por favor cámbiala después de ingresar.`
-    });
     await loadUsuarios();
     closeUsrModal();
     showToast(`🔑 Contraseña restablecida para ${u.nombre_completo}`, 'success');
+  } else {
+    showToast(`❌ Error al restablecer (HTTP ${res.status})`, 'error');
   }
 }
 
