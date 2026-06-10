@@ -9,41 +9,47 @@ sobre supuestos equivocados.
 
 ## 1. Cuenta Stripe y entorno
 
-- [ ] ¿Ya hay cuenta Stripe activa para Siscormed (o se reutiliza otra)?
-- [ ] ¿En qué país está dada de alta? (afecta métodos de pago disponibles
-      y soporte de Ecuador)
-- [ ] ¿Empezamos en **test mode** (claves `sk_test_…` / `pk_test_…`) y
-      después promovemos a live, o vamos directo a live con un primer
-      caso real chico?
-- [ ] Webhook secret (`whsec_…`) lo configuras tú en Stripe Dashboard una
-      vez tengamos el endpoint; lo guardo en `config.local.php`.
+⏳ Pendiente Pablo (10-jun-2026): aún no hay cuenta Stripe creada, no se
+ha decidido. Notas para cuando se decida:
 
-## 2. Modelo de cobro
+- Stripe Ecuador soporta cuentas locales con RUC. Aceptan tarjetas
+  internacionales y locales (Diners/MasterCard/Visa). El onboarding pide
+  RUC del emisor, info bancaria EC, y verificación de identidad del
+  representante legal.
+- Una vez creada, claves vienen en pares: test (`sk_test_…` / `pk_test_…`)
+  y live (`sk_live_…` / `pk_live_…`). Recomendado fuertemente arrancar
+  en test mode hasta el primer flujo end-to-end verde, después promover
+  a live.
+- Webhook secret (`whsec_…`) se genera en el dashboard al definir el
+  endpoint; va en `config.local.php`.
 
-GLP-1 típicamente se cobra mensual (la dosis es semanal pero el envío y
-la suscripción suelen ser mensuales).
+## 2. Modelo de cobro — DECIDIDO 2026-06-10
 
-- [ ] **Modalidad**:
-  - (a) **One-shot por orden**: cada `numero_orden` aprobado por el médico
-        se cobra una vez; si el paciente sigue tratamiento se le crea otra
-        orden el mes siguiente. Más simple, sin Stripe Customer Portal.
-  - (b) **Suscripción mensual**: Stripe crea un `customer` y un
-        `subscription`. Cobra automáticamente. Requiere `customer_portal`
-        para que el paciente pause/cancele. Más complejo pero menos
-        fricción para el paciente recurrente.
-  - (c) **Híbrido**: primer mes one-shot (consulta + primer envío),
-        después suscripción si el paciente acepta seguir.
-- [ ] **Precio**:
-  - Lista actual de medicamentos: Semaglutida 0.25mg / 0.5mg / 1mg,
-    Tirzepatida 2.5mg / 5mg / 10mg.
-  - ¿El precio se define en Stripe Dashboard (Stripe `Price` por
-    medicamento) y `numero_orden` referencia el `price_id`, o se calcula
-    server-side y se manda como `unit_amount` ad-hoc al crear la sesión?
-    Lo primero es más limpio, lo segundo es más flexible si hay
-    promociones / descuentos.
-- [ ] **Moneda**: USD por defecto en Ecuador. ¿OK?
-- [ ] **Costo de envío** dentro de Ecuador: ¿incluido en el precio o se
-      cobra aparte como `shipping_options`?
+- ✅ **Modalidad: ONE-SHOT por orden.** Cada `numero_orden` aprobado por
+  el médico se cobra una sola vez. Si el paciente sigue tratamiento, el
+  médico aprueba una nueva orden el mes siguiente y vuelve al checkout.
+  Implica: NO usamos `customer.subscription.*`, no hay Customer Portal,
+  el webhook a manejar es `checkout.session.completed`.
+- ✅ **Precio: en Stripe Dashboard.** Cada medicamento × dosis se
+  define como un `Price` (recurring=false) en el dashboard. La tabla
+  `pacientes.medicamento_aprobado` debe poder mapearse 1:1 a un
+  `price_id`. Plan de mapeo (a confirmar al crear los productos):
+  | medicamento_aprobado           | producto Stripe sugerido  |
+  | ------------------------------ | ------------------------- |
+  | Semaglutida 0.25mg (inicio)    | Semaglutide 0.25mg one-shot |
+  | Semaglutida 0.5mg              | Semaglutide 0.5mg one-shot |
+  | Semaglutida 1mg                | Semaglutide 1mg one-shot   |
+  | Tirzepatida 2.5mg              | Tirzepatide 2.5mg one-shot |
+  | Tirzepatida 5mg                | Tirzepatide 5mg one-shot   |
+  | Tirzepatida 10mg               | Tirzepatide 10mg one-shot  |
+
+  Mantengo un mapa string→price_id en `api/config.local.php` (gitignored)
+  para no hardcodear price_ids en código público.
+- ✅ **Moneda: USD.**
+- ✅ **Envío: cobra aparte.** Uso `shipping_options` en la sesión de
+  Checkout. Pendiente definir: ¿una sola tarifa fija "Envío nacional EC
+  $X" o varias opciones (estándar / express)? Por defecto asumo una
+  tarifa fija — me dices el monto cuando vayamos a crearlo.
 
 ## 3. Flujo de pago para el paciente
 
