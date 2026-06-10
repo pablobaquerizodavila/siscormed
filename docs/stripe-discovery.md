@@ -88,23 +88,35 @@ posibles:
 | **(B) Separate charges (laboratorio dueño)** | El laboratorio directo. Siscormed no toca el monto. | El laboratorio. Siscormed factura comisión post-hoc. | + Aún más limpio fiscalmente. − Siscormed no controla el flujo de checkout; menos UX integrada. |
 | **(C) Charge directo a Siscormed + transferencia manual** | Siscormed cobra todo el monto bruto. Después transfiere off-Stripe al laboratorio (transferencia bancaria, ACH). | El laboratorio factura al paciente cuando recibe el monto. Siscormed factura comisión al laboratorio. | + No requiere Stripe Connect ni onboarding del laboratorio. − Siscormed mueve dinero que fiscalmente no es suyo → tratamiento contable delicado, posiblemente requiere registro como agente de retención. |
 
-⏳ **Pendiente Pablo:** decidir modelo A/B/C. Recomendación: **(A)** si
-hay un solo laboratorio o pocos, **Connect Custom** o **Express** para
-manejar el onboarding. **(C)** sólo si el laboratorio se niega a tener
-Stripe.
+✅ **DECIDIDO 2026-06-10:** **Modelo A — Destination charge con
+`application_fee_amount`**. Connect Express para minimizar fricción de
+onboarding del laboratorio.
 
-⏳ **Datos a tener listos:**
-- Razón social, RUC y datos bancarios del laboratorio
-- ¿Es un solo laboratorio o varios? (afecta si hay que mantener una
-  tabla `laboratorios` con `stripe_account_id` por cada uno)
-- ¿Existe contrato firmado de agente de recaudación entre Siscormed y el
-  laboratorio? (necesario fiscalmente; afecta también qué % cobra
-  Siscormed)
-- Si la factura SRI sale del laboratorio, ¿el laboratorio ya tiene su
-  emisor electrónico funcionando? ¿Cómo le pasamos los datos del
-  paciente para que emita: email automático con datos al laboratorio,
-  webhook a un endpoint del laboratorio, panel manual donde el lab vea
-  los pedidos pagados?
+✅ **Multi-laboratorio:** uno solo al inicio, crece a varios después.
+Tratamos esto como multi-tenant desde día 1: tabla `laboratorios` con
+`stripe_account_id` propio por cada uno; cada paciente queda asociado
+al laboratorio que va a despachar su medicamento via
+`pacientes.laboratorio_id`.
+
+✅ **Comisión:** ~10% como referencia inicial pero **variable por
+laboratorio**. Vive como `laboratorios.comision_pct` y el endpoint de
+checkout la lee al crear la `Session`. Posible iteración futura:
+descuentos por volumen / promociones temporales.
+
+⏳ **Pendiente — proveedor de factura SRI del laboratorio:** Pablo no
+sabe todavía. Asumimos para el código que el laboratorio decide después.
+Lo que sí queda decidido es **cómo le pasamos los datos al
+laboratorio post-pago** mientras tanto:
+
+- El webhook `checkout.session.completed` dispara un email server-side
+  al `laboratorios.email` (NO al paciente — al lab) con un payload
+  estructurado: paciente (cédula/RUC/nombre/dirección/ciudad/email),
+  monto bruto, medicamento, dosis, `numero_orden`, fecha pago,
+  `stripe_session_id`.
+- El lab elige libremente cómo facturar (su emisor SRI, manual, etc.).
+- En una iteración futura se le puede dar al lab un panel
+  (`siscormed.com/lab.html`) o un webhook a su sistema; por ahora email
+  con todo en el body es suficiente.
 
 **Datos del paciente para la factura** (a pasarle al laboratorio post-
 pago): cédula / RUC / nombre completo / dirección / ciudad / email,
@@ -131,7 +143,7 @@ monto, medicamento, número de orden. Todos están en `pacientes` ya.
   `stripe_events` para auditoría (no en `pacientes_auditoria` que es
   para flujo médico).
 
-## 6. Nueva máquina de estados — propuesta
+## 6. Nueva máquina de estados — APROBADA 2026-06-10
 
 Hoy el flujo es:
 
@@ -184,20 +196,38 @@ vendor/                          # composer install stripe/stripe-php
                                  # (vendor/ va al .gitignore)
 
 migrations/
-├── 003_stripe_events.sql        # tablas stripe_events_seen + stripe_events
-└── 004_estado_pago_confirmado.sql # CHECK constraint actualizado
+├── 003_laboratorios.sql         # tabla laboratorios + pacientes.laboratorio_id
+├── 004_pago_confirmado.sql      # CHECK constraint con el estado nuevo
+└── 005_stripe_events.sql        # idempotency + auditoría
 ```
 
-## 8. Lo que necesito de ti
+## 8. Plan de ejecución — Fase A / Fase B
 
-Para arrancar, las respuestas mínimas son:
+Con todo lo decidido arriba, el trabajo se separa así:
 
-1. ¿Test mode o live mode? Si test, dame `sk_test_…` y `pk_test_…`.
-2. ¿One-shot u suscripción?
-3. ¿Cómo entrega el paciente el pago: email-link, portal, ambos?
-4. ¿Tienes proveedor de factura electrónica EC ya, o vamos fase-1
-   (PDF simple) por ahora?
-5. ¿Apruebas el cambio de máquina de estados de la sección 6?
+### Fase A — sin depender de cuenta Stripe (ESTA SESIÓN)
 
-Con esas 5 respuestas puedo armar un plan de implementación pasable a
-sesión de codeo de un solo tirón.
+1. Migrations DB: `laboratorios`, `pacientes.laboratorio_id`,
+   `stripe_events`, CHECK con `pago_confirmado`.
+2. `/api/laboratorios.php` — CRUD admin.
+3. `/api/stripe_checkout.php` y `/api/stripe_webhook.php` como **stubs**
+   que devuelven `503 Service Unavailable` con mensaje
+   "Stripe no configurado todavía" hasta que existan las claves. El
+   esqueleto completo del flujo está adentro como TODOs (forma del
+   payload, eventos a escuchar, transición de estado), listo para
+   completarse en Fase B sin tocar el resto.
+4. Insert de placeholder del primer laboratorio para que el sistema
+   pueda funcionar end-to-end inmediatamente cuando llegue Stripe.
+
+### Fase B — cuando exista cuenta Stripe Connect Express
+
+1. Onboarding del primer laboratorio (Express link → KYC).
+2. Crear los `Price` en dashboard, llenar el mapa
+   `medicamento_aprobado → price_id` en `config.local.php`.
+3. `composer require stripe/stripe-php`, llenar los stubs.
+4. Probar el ciclo completo en test mode.
+5. Reapuntar la ruta `LAB_RECIBIDO` de Make.com de
+   `estado=lab_pendiente` a `estado=pago_confirmado`.
+6. Cambiar a live mode.
+7. Portal del paciente (`/api/paciente.php` + `paciente.html`) — se
+   puede empezar también en Fase B, no es bloqueador para A.

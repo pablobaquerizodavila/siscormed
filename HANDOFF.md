@@ -13,6 +13,10 @@
 | ------ | ------ | ------ |
 | `569abcf` | `sec(admin): move password recovery and admin reset to server-side` | Deuda de seguridad en admin.html (tokens CSPRNG, password fuera del payload del webhook) |
 | `df7cd34` | `docs(stripe): scope and open questions before implementation` | Discovery doc para módulo de pagos (`docs/stripe-discovery.md`) |
+| `7b7a58c` | `docs: add HANDOFF for session continuity` | Este archivo |
+| `1df4215` | `docs(stripe): capture Pablo's 4 model-of-charge decisions` | Modelo de cobro decidido |
+| `6abff02` | `docs(stripe): patient-flow done + reframe billing as marketplace` | Confirma flujo paciente y reformula factura como marketplace |
+| _siguiente_ | `feat(stripe): Fase A — laboratorios + state + stripe stubs` | Schema + endpoint laboratorios + stubs Stripe (sin cuenta aún) |
 
 ### Cambios en infra (no en repo)
 
@@ -50,20 +54,30 @@ Estos no quedan reflejados en git pero conviene tener presente:
 
 ## Lo que queda pendiente
 
-### Bloqueado por decisión de Pablo
+### Bloqueado por decisión de Pablo / acción externa
 
-- **#5 Stripe Checkout + factura PDF + webhook** — ver
-  [`docs/stripe-discovery.md`](docs/stripe-discovery.md), sección "Lo
-  que necesito de ti". Hay 5 preguntas que necesito que respondas
-  (entorno test/live, modelo one-shot vs suscripción, flujo del
-  paciente, proveedor de factura SRI EC, cambio de máquina de estados).
-  Una vez respondidas: 1 sesión de codeo.
+- **#5 Stripe — Fase B** — el código de Fase A ya está deployado y
+  pasa smoke tests (laboratorios endpoint OK, stubs Stripe devuelven
+  503 con mensaje identificable). Fase B activa todo:
+  1. Pablo decide crear cuenta Stripe y completa onboarding del primer
+     laboratorio en Connect Express.
+  2. Crear los `Price` en el dashboard (uno por medicamento × dosis).
+  3. `composer require stripe/stripe-php` en local, subir `vendor/` al
+     NAS (vendor/ ya está en .gitignore).
+  4. Añadir a `/volume2/web/siscormed/api/config.local.php` el bloque
+     `'stripe' => [...]` con `secret_key`, `webhook_secret` y
+     `price_id_map`.
+  5. Llenar los TODOs en `api/stripe_checkout.php` y
+     `api/stripe_webhook.php` (están todos comentados con `TODO Fase B`,
+     listos para descomentar).
+  6. Reapuntar Make.com: ruta `LAB_RECIBIDO` cambia de
+     `estado=lab_pendiente` a `estado=pago_confirmado` (esto cierra #4).
+  7. Test mode end-to-end → live.
+  8. Portal del paciente (`/api/paciente.php` + `paciente.html`) y
+     páginas `pago-ok.html` / `pago-cancelado.html` — opcional para
+     Fase B, no bloquea el flujo email-link.
 
-- **#4 Notificación lab post-pago** — naturalmente dependiente de #5.
-  Cuando exista el estado `pago_confirmado`, en Make.com basta cambiar
-  el trigger de la ruta `LAB_RECIBIDO` de `estado = lab_pendiente` a
-  `estado = pago_confirmado`. Está propuesto en la sección 6 del
-  discovery de Stripe.
+- **#4 Notificación lab post-pago** — al implementar Fase B punto 6.
 
 ### Mejora opcional, no urgente
 
