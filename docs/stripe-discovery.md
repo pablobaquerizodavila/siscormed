@@ -51,57 +51,64 @@ ha decidido. Notas para cuando se decida:
   $X" o varias opciones (estándar / express)? Por defecto asumo una
   tarifa fija — me dices el monto cuando vayamos a crearlo.
 
-## 3. Flujo de pago para el paciente
+## 3. Flujo de pago para el paciente — DECIDIDO 2026-06-10
 
-- [ ] **Disparador**:
-  - (a) Cuando el médico aprueba (`estado = aprobado_medico`),
-        Make.com envía email al paciente con link de Stripe Checkout.
-  - (b) Cuando el médico aprueba, el paciente entra a
-        `siscormed.com/paciente.html?email=…` (o usa `siscormed.html`
-        existente con su cédula), ve el estado y un botón "Pagar ahora"
-        que abre Checkout.
-  - (c) Ambas (email con link + portal).
-- [ ] **Datos de Stripe Checkout**:
-  - prefill `customer_email` con `pacientes.email` ✓
-  - `success_url` → `siscormed.com/pago-ok.html?session_id={CHECKOUT_SESSION_ID}`
-  - `cancel_url` → `siscormed.com/pago-cancelado.html?numero_orden=…`
-  - `metadata.paciente_id` para reconciliar en webhook
-  - `metadata.numero_orden`
-- [ ] **Recibo de Stripe**: Stripe ofrece email de recibo automático.
-      ¿Lo dejamos prendido (recibo legible inmediato) o lo apagamos y
-      mandamos sólo nuestra factura SRI?
+- ✅ **(c) Ambas**: email al paciente con link de Checkout cuando el
+  médico aprueba **+** portal en `siscormed.com` donde el paciente entra
+  con cédula/email y ve un botón "Pagar ahora". Ambas rutas terminan en
+  la misma `Checkout.Session`.
+- ✅ **Datos de Stripe Checkout**:
+  - `customer_email` prefilled con `pacientes.email`
+  - `success_url` → `https://siscormed.com/pago-ok.html?session_id={CHECKOUT_SESSION_ID}`
+  - `cancel_url` → `https://siscormed.com/pago-cancelado.html?numero_orden=…`
+  - `metadata.paciente_id` y `metadata.numero_orden` para reconciliar en
+    webhook
+- ✅ Recibo automático de Stripe queda **prendido** como recibo legible
+  inmediato; la factura SRI formal la emite el laboratorio (ver §4) y
+  llega después por email.
 
-## 4. Factura electrónica Ecuador (SRI)
+## 4. Factura — DECIDIDO 2026-06-10 (modelo marketplace)
 
-Ecuador exige facturación electrónica con autorización SRI: clave de
-acceso de 49 dígitos, XML firmado con certificado del contribuyente,
-estado autorizado, formato RIDE PDF.
+**Esquema acordado:** Siscormed **NO emite factura**. Siscormed es
+**agente de recaudación**. La factura electrónica SRI la emite el
+laboratorio o la persona natural/jurídica autorizada a comercializar el
+producto médico al paciente.
 
-- [ ] **¿Quién emite las facturas Siscormed hoy?**
-  - (a) Pablo / la empresa tiene su propio proveedor de facturación
-        electrónica (FactuPro, Defontana, ContiFico, FACTURAEC, etc.).
-        En ese caso integramos webhook → API del proveedor con datos del
-        paciente + monto + medicamento.
-  - (b) Aún no se emiten facturas formales y queremos arrancar con un PDF
-        "recibo" simple (sin clave de acceso SRI) hasta tener el flujo de
-        SRI. Esto puede generar problemas legales/tributarios si los
-        montos pasan ciertos umbrales.
-- [ ] **Datos fiscales del cliente**:
-  - Cédula la tenemos en `pacientes.cedula`.
-  - RUC opcional en `pacientes.ruc` (si la persona compra a nombre de
-    empresa).
-  - Nombre completo, dirección, ciudad, email. Todos presentes.
-- [ ] **Datos fiscales del emisor** (Siscormed):
-  - Razón social, RUC, dirección, número de establecimiento, punto de
-    emisión, secuencial. ¿Estos están definidos / dónde se guardan?
-- [ ] **Plan tentativo**:
-  - **Fase 1 (rápida)**: post-pago, Make.com manda al paciente un email
-    con resumen + recibo PDF generado server-side con `dompdf` o
-    `mPDF` (sin clave SRI). NO es factura tributaria pero deja
-    comprobante al paciente.
-  - **Fase 2 (formal)**: integración con proveedor de facturación
-    electrónica EC; el webhook llama al proveedor, recibe clave de acceso
-    y PDF autorizado, lo adjunta al email al paciente.
+Esto convierte el sistema en una pequeña **marketplace**: la
+plataforma (Siscormed) cobra al paciente, el dinero pertenece
+fiscalmente al laboratorio, y Siscormed se queda con una comisión por
+el servicio de coordinación + cobranza.
+
+Stripe tiene el patrón resuelto con **Stripe Connect**. Tres modelos
+posibles:
+
+| Modelo | Quién recibe el cobro inicial | Quién factura al paciente | Pros / Contras |
+| ------ | ------ | ------ | ------ |
+| **(A) Destination charge con `application_fee_amount`** | El laboratorio (connected account) directo en Stripe. Stripe split-ea: `monto - application_fee` al laboratorio, `application_fee` a Siscormed. | El laboratorio (su factura SRI cubre el monto bruto). Siscormed factura su comisión aparte al laboratorio. | + Cumple naturalmente con "el laboratorio cobra y factura". + Limpio fiscalmente. − Requiere onboarding del laboratorio en Stripe Connect (KYC). |
+| **(B) Separate charges (laboratorio dueño)** | El laboratorio directo. Siscormed no toca el monto. | El laboratorio. Siscormed factura comisión post-hoc. | + Aún más limpio fiscalmente. − Siscormed no controla el flujo de checkout; menos UX integrada. |
+| **(C) Charge directo a Siscormed + transferencia manual** | Siscormed cobra todo el monto bruto. Después transfiere off-Stripe al laboratorio (transferencia bancaria, ACH). | El laboratorio factura al paciente cuando recibe el monto. Siscormed factura comisión al laboratorio. | + No requiere Stripe Connect ni onboarding del laboratorio. − Siscormed mueve dinero que fiscalmente no es suyo → tratamiento contable delicado, posiblemente requiere registro como agente de retención. |
+
+⏳ **Pendiente Pablo:** decidir modelo A/B/C. Recomendación: **(A)** si
+hay un solo laboratorio o pocos, **Connect Custom** o **Express** para
+manejar el onboarding. **(C)** sólo si el laboratorio se niega a tener
+Stripe.
+
+⏳ **Datos a tener listos:**
+- Razón social, RUC y datos bancarios del laboratorio
+- ¿Es un solo laboratorio o varios? (afecta si hay que mantener una
+  tabla `laboratorios` con `stripe_account_id` por cada uno)
+- ¿Existe contrato firmado de agente de recaudación entre Siscormed y el
+  laboratorio? (necesario fiscalmente; afecta también qué % cobra
+  Siscormed)
+- Si la factura SRI sale del laboratorio, ¿el laboratorio ya tiene su
+  emisor electrónico funcionando? ¿Cómo le pasamos los datos del
+  paciente para que emita: email automático con datos al laboratorio,
+  webhook a un endpoint del laboratorio, panel manual donde el lab vea
+  los pedidos pagados?
+
+**Datos del paciente para la factura** (a pasarle al laboratorio post-
+pago): cédula / RUC / nombre completo / dirección / ciudad / email,
+monto, medicamento, número de orden. Todos están en `pacientes` ya.
 
 ## 5. Webhook handler
 
